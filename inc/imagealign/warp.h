@@ -47,7 +47,7 @@ namespace imagealign {
     };
     
     
-    /** Base class for planar motions */
+    /** Base class for warps based on planar motions. */
     class PlanarWarp {
     public:
         
@@ -83,7 +83,7 @@ namespace imagealign {
     template<int WarpType>
     class Warp;
     
-    /** Implementation of a warp supporting translational motion. */
+    /** Implementation of warp for translational motion. */
     template<>
     class Warp<WARP_TRANSLATION> : public PlanarWarp {
     public:
@@ -130,7 +130,7 @@ namespace imagealign {
     
     
     /**
-        Warp image using bilinear interpolation.
+        Warp an image using bilinear interpolation.
      
         This method warps a given source image onto a given destination image. It assumes the direction
         of the warp is such that for given pixel in the destination image, the warp reports the corresponding

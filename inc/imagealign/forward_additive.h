@@ -136,8 +136,6 @@ namespace imagealign {
             // Loop over template region
             for (int y = 0; y < _template.rows; ++y) {
                 
-                const float *tplRow = _template.ptr<float>(y);
-                const float *tgtRow = _warpedTarget.ptr<float>(y);
                 const float *gxRow = _warpedGradX.ptr<float>(y);
                 const float *gyRow = _warpedGradY.ptr<float>(y);
                 const float *eRow = _errorImage.ptr<float>(y);
