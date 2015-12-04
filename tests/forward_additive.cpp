@@ -17,34 +17,35 @@
  along with Image Alignment.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 
-#include <imagealign/warp.h>
+#include <imagealign/forward_additive.h>
+#include <opencv2/opencv.hpp>
 
-TEST_CASE("warp-translational")
+TEST_CASE("forward-additive")
 {
     namespace ia = imagealign;
     
     typedef ia::Warp<ia::WARP_TRANSLATION> WarpType;
+    typedef ia::AlignForwardAdditive<ia::WARP_TRANSLATION> AlignType;
+    
+    cv::Mat target(100, 100, CV_8UC1);
+    cv::randu(target, cv::Scalar::all(0), cv::Scalar::all(255));
+    cv::blur(target, target, cv::Size(5,5));
+    
+    cv::Mat tmpl = target(cv::Rect(20, 20, 10, 10));
+    
+    AlignType al;
+    al.prepare(tmpl, target);
     
     WarpType w;
-    w.setIdentity();
+    w.setParameters(WarpType::VType(15, 15));
     
-    REQUIRE(w.getParameters()(0,0) == 0.f);
-    REQUIRE(w.getParameters()(1,0) == 0.f);
+    int iter = 0;
+    while (al.align(w) > 0.001f && iter < 100)
+        ++iter;
     
-    WarpType::VType p;
-    p(0,0) = 10.f;
-    p(1,0) = 5.f;
-    w.setParameters(p);
-    
-    cv::Point2f x(5.f, 5.f);
-    cv::Point2f wx = w(x);
-    
-    REQUIRE(wx.x == 15.f);
-    REQUIRE(wx.y == 10.f);
-    
-    
-    
+    REQUIRE(iter < 100);
+    REQUIRE(w.getParameters()(0,0) == Catch::Detail::Approx(20).epsilon(0.01));
+    REQUIRE(w.getParameters()(1,0) == Catch::Detail::Approx(20).epsilon(0.01));
 }

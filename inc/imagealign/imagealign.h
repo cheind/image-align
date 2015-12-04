@@ -20,4 +20,7 @@
 #ifndef IMAGE_ALIGN_H
 #define IMAGE_ALIGN_H
 
+#include <imagealign/warp.h>
+#include <imagealign/forward_additive.h>
+
 #endif
