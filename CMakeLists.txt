@@ -1,0 +1,33 @@
+cmake_minimum_required(VERSION 2.8)
+
+project(image-alignment)
+
+if (WIN32)
+	#set(OpenCV_STATIC true)
+	add_definitions("-D_SCL_SECURE_NO_WARNINGS -D_CRT_SECURE_NO_WARNINGS")
+endif()
+
+find_package(OpenCV REQUIRED)
+
+include_directories(${CMAKE_CURRENT_BINARY_DIR} ${OpenCV_INCLUDE_DIRS} "inc")
+
+# Library
+add_library(ialign
+    inc/imagealign/imagealign.h
+	src/warp.cpp
+)
+	
+target_link_libraries(ialign ${OpenCV_LIBRARIES})
+	
+# Samples
+
+add_executable(example_align examples/align.cpp)
+target_link_libraries(example_align ialign ${OpenCV_LIBRARIES})
+
+# Tests
+
+add_executable(tests
+    tests/catch.hpp
+    tests/warp.cpp
+)
+target_link_libraries(tests ialign ${OpenCV_LIBRARIES})
