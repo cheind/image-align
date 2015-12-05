@@ -23,9 +23,7 @@
 namespace ia = imagealign;
 
 void initializeWarp(cv::Size templateSize, cv::Size targetSize, ia::Warp<ia::WARP_TRANSLATION> &w) {
-    typedef ia::Warp<ia::WARP_TRANSLATION> W;
-    
-    W::VType params;
+    ia::WarpTraits<ia::WARP_TRANSLATION>::ParamType params;
     params(0,0) = cv::theRNG().uniform(0, targetSize.width - templateSize.width);
     params(1,0) = cv::theRNG().uniform(0, targetSize.height - templateSize.height);
     
@@ -33,11 +31,10 @@ void initializeWarp(cv::Size templateSize, cv::Size targetSize, ia::Warp<ia::WAR
 }
 
 void perturbateWarp(ia::Warp<ia::WARP_TRANSLATION> &w) {
-    typedef ia::Warp<ia::WARP_TRANSLATION> W;
     
-    W::VType params = w.getParameters();
-    params(0,0) += cv::theRNG().gaussian(5);
-    params(1,0) += cv::theRNG().gaussian(5);
+    ia::WarpTraits<ia::WARP_TRANSLATION>::ParamType params = w.getParameters();
+    params(0,0) += cv::theRNG().gaussian(8);
+    params(1,0) += cv::theRNG().gaussian(8);
     
     w.setParameters(params);
 }

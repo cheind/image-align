@@ -20,7 +20,7 @@
 #ifndef IMAGE_ALIGN_FORWARD_ADDITIVE_H
 #define IMAGE_ALIGN_FORWARD_ADDITIVE_H
 
-#include <imagealign/warp.h>
+#include <imagealign/align_base.h>
 #include <imagealign/bilinear.h>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -57,50 +57,30 @@ namespace imagealign {
         International journal of computer vision 56.3 (2004): 221-255.
 
      */
-    template<int WarpType>
-    class AlignForwardAdditive {
-    public:
-        enum {
-            NParameters = Warp<WarpType>::NParameters
-        };
-        
-        /** The type of warp. */
-        typedef Warp<WarpType> WType;
-        
-        /** Type to hold Hessian matrix */
-        typedef cv::Matx<float, NParameters, NParameters> HessianType;
-        
-        /** Type to hold the steepest descent image for a single pixel */
-        typedef cv::Matx<float, 1, NParameters> PixelSDIType;
-        
-        /** Type to hold the transposed steepest descent image for a single pixel */
-        typedef cv::Matx<float, NParameters, 1> PixelSDITransposedType;
-        
+    template<int WarpMode>
+    class AlignForwardAdditive : public AlignBase< AlignForwardAdditive<WarpMode>, WarpMode> {
+    protected:
         
         /** 
             Prepare for alignment.
          
-            This function takes the template and target image and performs
-            necessary pre-calculations to speed up the alignment process.
-         
-            \param tmpl Single channel template image
-            \param target Single channel target image to align template with.
+            In the forward additive algorithm not much data can be pre-calculated, which is
+            why this algorithm is not the fastest. The only thing that could be calculated
+            beforehand are the gradients of the target image.
          */
-        void prepare(cv::InputArray tmpl, cv::InputArray target)
+        void prepareImpl()
         {
-            CV_Assert(tmpl.channels() == 1);
-            CV_Assert(target.channels() == 1);
+            cv::Mat tpl = this->templateImage();
+            cv::Mat target = this->targetImage();
             
-            tmpl.getMat().convertTo(_template, CV_32F);
-            target.getMat().convertTo(_target, CV_32F);
+            _warpedTarget.create(tpl.size(), CV_32FC1);
+            _errorImage.create(tpl.size(), CV_32FC1);
+            _warpedGradX.create(tpl.size(), CV_32FC1);
+            _warpedGradY.create(tpl.size(), CV_32FC1);
             
-            _warpedTarget.create(_template.size(), CV_32FC1);
-            _errorImage.create(_template.size(), CV_32FC1);
-            _warpedGradX.create(_template.size(), CV_32FC1);
-            _warpedGradY.create(_template.size(), CV_32FC1);
             
-            cv::Sobel(_target, _gradX, CV_32F, 1, 0);
-            cv::Sobel(_target, _gradY, CV_32F, 0, 1);
+            cv::Sobel(target, _gradX, CV_32F, 1, 0);
+            cv::Sobel(target, _gradY, CV_32F, 0, 1);
             
             // Sobel uses 3x3 convolution matrix and result is not in units
             // of intensity anymore. Hence, normalize
@@ -108,58 +88,64 @@ namespace imagealign {
             _gradY *= 0.125f;
         }
         
-        /** Perform a single alignment step. 
+        /** 
+            Perform a single alignment step.
          
             This method takes the current state of the warp parameters and refines
             them by minimizing the sum of squared intensity differences.
          
-            \param w Current state of warp estimation. Will be modified to hold result.
+            \param w Current state of warp estimation. Will be modified to hold updated warp.
          */
-        float align(WType &w)
+        void alignImpl(Warp<WarpMode> &w)
         {
+            cv::Mat tpl = this->templateImage();
+            cv::Mat target = this->targetImage();
+            
             // Warp target back to template with respect to current warp parameters
-            warpImage<float>(_target, _warpedTarget, _warpedTarget.size(), w);
+            warpImage<float>(target, _warpedTarget, _warpedTarget.size(), w);
             
             // Warp the gradient
             warpImage<float>(_gradX, _warpedGradX, _warpedGradX.size(), w);
             warpImage<float>(_gradY, _warpedGradY, _warpedGradY.size(), w);
             
             // Compute the error image
-            _errorImage = _template - _warpedTarget;
+            _errorImage = tpl - _warpedTarget;
             
-            // Compute the Jacobian of the warp
-            typename WType::JType jacobian = w.jacobian();
+            typedef typename WarpTraits<WarpMode>::JacobianType JacobianType;
+            typedef typename WarpTraits<WarpMode>::HessianType HessianType;
+            typedef typename WarpTraits<WarpMode>::PixelSDIType PixelSDIType;
+            typedef typename WarpTraits<WarpMode>::PixelSDITransposedType PixelSDITransposedType;
             
+            JacobianType jacobian = w.jacobian();
             HessianType hessian = HessianType::zeros();
             PixelSDITransposedType sumSDITimesError = PixelSDITransposedType::zeros();
             
             // Loop over template region
-            for (int y = 0; y < _template.rows; ++y) {
+            for (int y = 0; y < tpl.rows; ++y) {
                 
                 const float *gxRow = _warpedGradX.ptr<float>(y);
                 const float *gyRow = _warpedGradY.ptr<float>(y);
                 const float *eRow = _errorImage.ptr<float>(y);
                 
-                for (int x = 0; x < _template.cols; ++x) {
+                for (int x = 0; x < tpl.cols; ++x) {
                     const PixelSDIType sd = cv::Matx<float, 1, 2>(gxRow[x], gyRow[x]) * jacobian;
                     sumSDITimesError += (sd.t() * eRow[x]);
                     hessian += sd.t() * sd;
                 }
             }
             
-            typename WType::VType delta = hessian.inv() * sumSDITimesError;
+            typename WarpTraits<WarpMode>::ParamType delta = hessian.inv() * sumSDITimesError;
             
             // Additive warp parameter update.
             w.setParameters(w.getParameters() + delta);
             
-            // Return the average intensity error.
-            return cv::mean(_errorImage)[0];
+            this->setLastError(cv::mean(_errorImage)[0]);
+            this->setLastIncrement(delta);
         }
         
     private:
+        friend class AlignBase< AlignForwardAdditive<WarpMode>, WarpMode>;
         
-        cv::Mat _template;
-        cv::Mat _target;
         cv::Mat _warpedTarget;
         cv::Mat _errorImage;
         cv::Mat _gradX, _gradY;

@@ -16,6 +16,7 @@ add_library(ialign
     inc/imagealign/imagealign.h
     inc/imagealign/bilinear.h
     inc/imagealign/warp.h
+    inc/imagealign/align_base.h
     inc/imagealign/forward_additive.h
     src/unused.cpp
 )

@@ -27,6 +27,7 @@ TEST_CASE("forward-additive")
     namespace ia = imagealign;
     
     typedef ia::Warp<ia::WARP_TRANSLATION> WarpType;
+    typedef ia::WarpTraits<ia::WARP_TRANSLATION> Traits;
     typedef ia::AlignForwardAdditive<ia::WARP_TRANSLATION> AlignType;
     
     cv::Mat target(100, 100, CV_8UC1);
@@ -39,13 +40,11 @@ TEST_CASE("forward-additive")
     al.prepare(tmpl, target);
     
     WarpType w;
-    w.setParameters(WarpType::VType(15, 15));
+    w.setParameters(Traits::ParamType(15, 15));
     
-    int iter = 0;
-    while (al.align(w) > 0.001f && iter < 100)
-        ++iter;
+    al.align(w, 100, 0.001f);
     
-    REQUIRE(iter < 100);
+    REQUIRE(al.iteration() < 100);
     REQUIRE(w.getParameters()(0,0) == Catch::Detail::Approx(20).epsilon(0.01));
     REQUIRE(w.getParameters()(1,0) == Catch::Detail::Approx(20).epsilon(0.01));
 }

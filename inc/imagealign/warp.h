@@ -22,13 +22,13 @@
 
 #include <imagealign/bilinear.h>
 #include <opencv2/core/core.hpp>
-#include <iostream>
 
 namespace imagealign {
     
-    /** Set of supported parametrized warps.
+    /** 
+        Set of supported warp functions.
         
-        The warp type defines the motion that image coordinates can undergo. Simpler 
+        The warp mode defines the motion that image coordinates can undergo. Simpler
         motions take less parameters and may lead to more efficient algorithms, but
         depending on your application a simple motion model might not describe the true
         motion adequately and can therefore lead to less accurate results.
@@ -39,15 +39,21 @@ namespace imagealign {
      
         [1] Szeliski, Richard.
             "Image alignment and stitching: A tutorial."
-            Foundations and Trends® in Computer Graphics and Vision 2.1 (2006): 1-104.
+            Foundations and Trends in Computer Graphics and Vision 2.1 (2006): 1-104.
      
     */
-    enum EWarpType {
+    enum EWarpMode {
         WARP_TRANSLATION
     };
     
     
-    /** Base class for warps based on planar motions. */
+    /** 
+        Base class for warps based on planar motions. 
+     
+        Planar motions in 2D can be well described by a 3x3 matrix, which is
+        what this class does. It can thus provide a (not always) efficient warp
+        method for image coordinates.
+    */
     class PlanarWarp {
     public:
         
@@ -80,31 +86,54 @@ namespace imagealign {
         MType _m;
     };
     
-    template<int WarpType>
+    template<int WarpMode>
     class Warp;
     
-    /** Implementation of warp for translational motion. */
+    template<int WarpMode>
+    struct WarpTraits;
+    
     template<>
-    class Warp<WARP_TRANSLATION> : public PlanarWarp {
-    public:
+    struct WarpTraits<WARP_TRANSLATION> {
         enum {
             NParameters = 2
         };
         
-        /** Type to hold the warp parameters. */
-        typedef cv::Matx<float, NParameters, 1> VType;
+        /** Type to hold parameters of warp. */
+        typedef cv::Matx<float, NParameters, 1> ParamType;
         
-        /** Type to hold the Jacobian of the warp. */
-        typedef cv::Matx<float, 2, NParameters> JType;
+        /** Type to hold Jacobian of warp. */
+        typedef cv::Matx<float, 2, NParameters> JacobianType;
+        
+        /** Type to hold Hessian matrix. */
+        typedef cv::Matx<float, NParameters, NParameters> HessianType;
+        
+        /** Type to hold the steepest descent image for a single pixel */
+        typedef cv::Matx<float, 1, NParameters> PixelSDIType;
+        
+        /** Type to hold the transposed steepest descent image for a single pixel */
+        typedef cv::Matx<float, NParameters, 1> PixelSDITransposedType;
+        
+    };
+
+    
+    /** 
+        Warp implementation for pure translational motion.
+     
+        This class inherits PlanarWarp to provide a default implementation
+        for transforming image coordinates.
+    */
+    template<>
+    class Warp<WARP_TRANSLATION> : public PlanarWarp {
+    public:
         
         
         /** Get warp parameters */
-        VType getParameters() const {
-            return VType(_m(0, 2), _m(1, 2));
+        typename WarpTraits<WARP_TRANSLATION>::ParamType getParameters() const {
+            return WarpTraits<WARP_TRANSLATION>::ParamType(_m(0, 2), _m(1, 2));
         }
         
         /** Set warp parameters */
-        void setParameters(const VType &p) {
+        void setParameters(const WarpTraits<WARP_TRANSLATION>::ParamType &p) {
             _m(0, 2) = p(0, 0);
             _m(1, 2) = p(1, 0);
         }
@@ -120,8 +149,8 @@ namespace imagealign {
                 y   0    1
          
          */
-        JType jacobian() const {
-            JType j = JType::zeros();
+        WarpTraits<WARP_TRANSLATION>::JacobianType jacobian() const {
+            WarpTraits<WARP_TRANSLATION>::JacobianType j = WarpTraits<WARP_TRANSLATION>::JacobianType::zeros();
             j(0, 0) = 1.f;
             j(1, 1) = 1.f;
             return j;

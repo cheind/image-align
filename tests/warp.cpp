@@ -27,6 +27,7 @@ TEST_CASE("warp-translational")
     namespace ia = imagealign;
     
     typedef ia::Warp<ia::WARP_TRANSLATION> WarpType;
+    typedef ia::WarpTraits<ia::WARP_TRANSLATION> Traits;
     
     WarpType w;
     w.setIdentity();
@@ -34,7 +35,7 @@ TEST_CASE("warp-translational")
     REQUIRE(w.getParameters()(0,0) == 0.f);
     REQUIRE(w.getParameters()(1,0) == 0.f);
     
-    WarpType::VType p;
+    Traits::ParamType p;
     p(0,0) = 10.f;
     p(1,0) = 5.f;
     w.setParameters(p);
