@@ -43,8 +43,12 @@ namespace imagealign {
      
     */
     enum EWarpMode {
+        /** 2D translational motion. 2 DoF */
         WARP_TRANSLATION,
-        WARP_EUCLIDEAN
+        /** 2D Euclidean motion. 3 DoF */
+        WARP_EUCLIDEAN,
+        /** 2D Similarty motion. 4 DoF */
+        WARP_SIMILARITY
     };
     
     
@@ -127,6 +131,12 @@ namespace imagealign {
      */
     template<>
     struct WarpTraits<WARP_EUCLIDEAN> : WarpTraitsForDoF<3> {};
+    
+    /**
+     Warp traits for Similarity motion.
+     */
+    template<>
+    struct WarpTraits<WARP_SIMILARITY> : WarpTraitsForDoF<4> {};
 
     
     /** 
@@ -138,14 +148,16 @@ namespace imagealign {
     template<>
     class Warp<WARP_TRANSLATION> : public PlanarWarp {
     public:
+        typedef typename WarpTraits<WARP_TRANSLATION>::ParamType ParamType;
+        typedef typename WarpTraits<WARP_TRANSLATION>::JacobianType JacobianType;
 
         /** Get warp parameters */
-        typename WarpTraits<WARP_TRANSLATION>::ParamType getParameters() const {
-            return WarpTraits<WARP_TRANSLATION>::ParamType(_m(0, 2), _m(1, 2));
+        ParamType getParameters() const {
+            return ParamType(_m(0, 2), _m(1, 2));
         }
         
         /** Set warp parameters */
-        void setParameters(const WarpTraits<WARP_TRANSLATION>::ParamType &p) {
+        void setParameters(const ParamType &p) {
             _m(0, 2) = p(0, 0);
             _m(1, 2) = p(1, 0);
         }
@@ -161,8 +173,8 @@ namespace imagealign {
                 y   0    1
          
          */
-        WarpTraits<WARP_TRANSLATION>::JacobianType jacobian(const cv::Point2f &p) const {
-            WarpTraits<WARP_TRANSLATION>::JacobianType j = WarpTraits<WARP_TRANSLATION>::JacobianType::zeros();
+        JacobianType jacobian(const cv::Point2f &p) const {
+            JacobianType j = JacobianType::zeros();
             j(0, 0) = 1.f;
             j(1, 1) = 1.f;
             return j;
@@ -179,13 +191,16 @@ namespace imagealign {
     class Warp<WARP_EUCLIDEAN> : public PlanarWarp {
     public:
         
+        typedef typename WarpTraits<WARP_EUCLIDEAN>::ParamType ParamType;
+        typedef typename WarpTraits<WARP_EUCLIDEAN>::JacobianType JacobianType;
+        
         /** Get warp parameters */
-        typename WarpTraits<WARP_EUCLIDEAN>::ParamType getParameters() const {
-            return WarpTraits<WARP_EUCLIDEAN>::ParamType(_m(0, 2), _m(1, 2), std::acos(_m(0,0)));
+        ParamType getParameters() const {
+            return ParamType(_m(0, 2), _m(1, 2), std::acos(_m(0,0)));
         }
         
         /** Set warp parameters */
-        void setParameters(const WarpTraits<WARP_EUCLIDEAN>::ParamType &p) {
+        void setParameters(const ParamType &p) {
             _m(0, 2) = p(0, 0);
             _m(1, 2) = p(1, 0);
             
@@ -210,8 +225,8 @@ namespace imagealign {
             y   0    1     cos(theta)x - sin(theta)y
          
          */
-        WarpTraits<WARP_EUCLIDEAN>::JacobianType jacobian(const cv::Point2f &p) const {
-            WarpTraits<WARP_EUCLIDEAN>::JacobianType j = WarpTraits<WARP_EUCLIDEAN>::JacobianType::zeros();
+        JacobianType jacobian(const cv::Point2f &p) const {
+            JacobianType j = JacobianType::zeros();
             j(0, 0) = 1.f;
             j(1, 1) = 1.f;
             
@@ -220,7 +235,6 @@ namespace imagealign {
             
             j(0, 2) = -s * p.x - c * p.y;
             j(1, 2) = c * p.x - s * p.y;
-
             
             return j;
         }
