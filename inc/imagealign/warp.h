@@ -47,7 +47,7 @@ namespace imagealign {
         WARP_TRANSLATION,
         /** 2D Euclidean motion. 3 DoF */
         WARP_EUCLIDEAN,
-        /** 2D Similarty motion. 4 DoF */
+        /** 2D Similarity motion. 4 DoF */
         WARP_SIMILARITY
     };
     
@@ -142,8 +142,14 @@ namespace imagealign {
     /** 
         Warp implementation for pure translational motion.
      
-        This class inherits PlanarWarp to provide a default implementation
-        for transforming image coordinates.
+        A translational transform preserves orientation, lengths, angles, parallel lines 
+        and straight lines.
+     
+        The warp is parametrized with 2 parameters (tx, ty). In matrix notation
+     
+            1  0  tx
+            0  1  ty
+
     */
     template<>
     class Warp<WARP_TRANSLATION> : public PlanarWarp {
@@ -160,6 +166,11 @@ namespace imagealign {
         void setParameters(const ParamType &p) {
             _m(0, 2) = p(0, 0);
             _m(1, 2) = p(1, 0);
+        }
+        
+        /** Set warp parameters. Convenience method. */
+        void setParameters(float tx, float ty) {
+            setParameters(ParamType(tx, ty));
         }
         
         /** Compute the jacobian of the warp.
@@ -182,10 +193,18 @@ namespace imagealign {
     };
     
     /**
-        Warp implementation for pure translational motion.
+        Warp implementation for Euclidean motion.
      
-        This class inherits PlanarWarp to provide a default implementation
-        for transforming image coordinates.
+        An Euclidean transform consists of  rotation and translation. It preserves lengths, 
+        angles, parallel lines and straight lines.
+     
+        The warp is parametrized with 3 parameters (tx, ty, theta). In matrix notation
+     
+            c  -s  tx
+            s   c  ty
+     
+            c = cos(theta)
+            s = sin(theta)
      */
     template<>
     class Warp<WARP_EUCLIDEAN> : public PlanarWarp {
@@ -213,6 +232,11 @@ namespace imagealign {
             _m(1,1) = c;
         }
         
+        /** Set warp parameters. Convenience method. */
+        void setParameters(float tx, float ty, float theta) {
+            setParameters(ParamType(tx, ty, theta));
+        }
+        
         /** 
             Compute the jacobian of the warp.
          
@@ -220,10 +244,14 @@ namespace imagealign {
             with respect to x and y coordinates, evaluated at the current value of parameters.
             In this case:
          
-                tx   ty  theta
-            x   1    0     -sin(theta)x - cos(theta)y
-            y   0    1     cos(theta)x - sin(theta)y
+                    tx   ty   theta
+                x   1    0  -sx - cy
+                y   0    1   cx - sy
          
+            with:
+         
+                c = cos(theta)
+                s = sin(theta)
          */
         JacobianType jacobian(const cv::Point2f &p) const {
             JacobianType j = JacobianType::zeros();
@@ -239,9 +267,85 @@ namespace imagealign {
             return j;
         }
     };
+    
+    /**
+        Warp implementation for Similarity motion.
+     
+        A similarity transform consists rotation, scale and translation. It preserves angles, 
+        parallel lines and straight lines.
+     
+        The warp is parametrized with 4 parameters (tx, ty, a, b). In matrix notation
+     
+            (1 + a)    -b     tx
+               b     (1 + a)  ty
+     
+            a = s * cos(theta)
+            b = s * sin(theta)
+     
+        While this representation seems strange - one would rather expect the four
+        parameters to be (tx, ty, theta and scale) - the chosen representation simplifies Jacobians,
+        and matrix to parameter decomposition.
+     */
+    template<>
+    class Warp<WARP_SIMILARITY> : public PlanarWarp {
+    public:
+        
+        typedef typename WarpTraits<WARP_SIMILARITY>::ParamType ParamType;
+        typedef typename WarpTraits<WARP_SIMILARITY>::JacobianType JacobianType;
+        
+        /** Get warp parameters */
+        ParamType getParameters() const {
+            return ParamType(_m(0, 2), _m(1, 2), 1.f - _m(0, 0), _m(1, 0));
+        }
+        
+        /** Set warp parameters */
+        void setParameters(const ParamType &p) {
+            _m(0, 2) = p(0, 0);
+            _m(1, 2) = p(1, 0);
+            
+            float a = p(2, 0);
+            float b = p(3, 0);
+            
+            _m(0,0) = 1.f + a;
+            _m(0,1) = -b;
+            _m(1,0) = b;
+            _m(1,1) = 1.f + a;
+        }
+        
+        /** Set warp parameters. Convenience method. */
+        void setParameters(float tx, float ty, float theta, float scale) {
+            setParameters(ParamType(tx, ty, scale * std::cos(theta), scale * std::sin(theta)));
+        }
+        
+        /**
+            Compute the jacobian of the warp.
+         
+            The Jacobian matrix contains the partial derivatives of the warp parameters
+            with respect to x and y coordinates, evaluated at the current value of parameters.
+            In this case:
+         
+                    tx   ty  a   b
+                x   1    0   x  -y
+                y   0    1   y   x
+         
+         */
+        JacobianType jacobian(const cv::Point2f &p) const {
+            JacobianType j = JacobianType::zeros();
+            j(0, 0) = 1.f;
+            j(1, 1) = 1.f;
+            
+            j(0, 2) = p.x;
+            j(1, 2) = p.y;
+            
+            j(0, 3) = -p.y;
+            j(1, 3) = p.x;
+            
+            return j;
+        }
+        
+    };
 
-    
-    
+
     /**
         Warp an image using bilinear interpolation.
      
