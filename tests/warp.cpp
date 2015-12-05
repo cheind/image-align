@@ -85,3 +85,34 @@ TEST_CASE("warp-euclidean")
     REQUIRE(wx.x == Catch::Detail::Approx(-10.f + 5.f).epsilon(0.01));
     REQUIRE(wx.y == Catch::Detail::Approx(-15.f + 5.f).epsilon(0.01));
 }
+
+TEST_CASE("warp-similarity")
+{
+    namespace ia = imagealign;
+    
+    typedef ia::Warp<ia::WARP_SIMILARITY> WarpType;
+    typedef ia::WarpTraits<ia::WARP_SIMILARITY> Traits;
+    
+    WarpType w;
+    w.setIdentity();
+    
+    REQUIRE(w.getParameters()(0,0) == 0.f);
+    REQUIRE(w.getParameters()(1,0) == 0.f);
+    REQUIRE(w.getParameters()(2,0) == 0.f);
+    REQUIRE(w.getParameters()(3,0) == 0.f);
+    
+    w.setParameters(5.f, 5.f, 3.1415f, 2.f);
+    
+    cv::Point2f x(0.f, 0.f);
+    cv::Point2f wx = w(x);
+    
+    REQUIRE(wx.x == 5.f);
+    REQUIRE(wx.y == 5.f);
+    
+    
+    x = cv::Point2f(10.f, 15.f);
+    wx = w(x);
+    
+    REQUIRE(wx.x == Catch::Detail::Approx(-20.f + 5.f).epsilon(0.01));
+    REQUIRE(wx.y == Catch::Detail::Approx(-30.f + 5.f).epsilon(0.01));
+}

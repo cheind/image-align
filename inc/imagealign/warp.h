@@ -285,6 +285,8 @@ namespace imagealign {
         While this representation seems strange - one would rather expect the four
         parameters to be (tx, ty, theta and scale) - the chosen representation simplifies Jacobians,
         and matrix to parameter decomposition.
+     
+        Also note that in this parametrization a and b are not independent parameters.
      */
     template<>
     class Warp<WARP_SIMILARITY> : public PlanarWarp {
@@ -295,7 +297,7 @@ namespace imagealign {
         
         /** Get warp parameters */
         ParamType getParameters() const {
-            return ParamType(_m(0, 2), _m(1, 2), 1.f - _m(0, 0), _m(1, 0));
+            return ParamType(_m(0, 2), _m(1, 2), _m(0, 0) - 1.f, _m(1, 0));
         }
         
         /** Set warp parameters */
@@ -314,7 +316,7 @@ namespace imagealign {
         
         /** Set warp parameters. Convenience method. */
         void setParameters(float tx, float ty, float theta, float scale) {
-            setParameters(ParamType(tx, ty, scale * std::cos(theta), scale * std::sin(theta)));
+            setParameters(ParamType(tx, ty, scale * std::cos(theta) - 1.f, scale * std::sin(theta)));
         }
         
         /**
