@@ -168,11 +168,6 @@ namespace imagealign {
             _m(1, 2) = p(1, 0);
         }
         
-        /** Set warp parameters. Convenience method. */
-        void setParameters(float tx, float ty) {
-            setParameters(ParamType(tx, ty));
-        }
-        
         /** Compute the jacobian of the warp.
             
             The Jacobian matrix contains the partial derivatives of the warp parameters
@@ -230,11 +225,6 @@ namespace imagealign {
             _m(0,1) = -s;
             _m(1,0) = s;
             _m(1,1) = c;
-        }
-        
-        /** Set warp parameters. Convenience method. */
-        void setParameters(float tx, float ty, float theta) {
-            setParameters(ParamType(tx, ty, theta));
         }
         
         /** 
@@ -314,9 +304,43 @@ namespace imagealign {
             _m(1,1) = 1.f + a;
         }
         
-        /** Set warp parameters. Convenience method. */
-        void setParameters(float tx, float ty, float theta, float scale) {
-            setParameters(ParamType(tx, ty, scale * std::cos(theta) - 1.f, scale * std::sin(theta)));
+        /** 
+            Set warp parameters in canonical representation.
+         
+            As the warp is parametrized using variables a and b, which are both products
+            of trigonometric functions and scaling, this method is provided to set the parameters
+            using a more user friendly notation.
+         
+            \param p Parameters in canonical form (tx, ty, theta, scale)
+         
+            */
+        void setParametersInCanonicalRepresentation(const ParamType &p) {
+            setParameters(ParamType(p(0,0), p(1, 0), p(3,0) * std::cos(p(2,0)) - 1.f, p(3,0) * std::sin(p(2,0))));
+        }
+        
+        /**
+            Get warp parameters in canonical representation.
+         
+            As the warp is parametrized using variables a and b, which are both products
+            of trigonometric functions and scaling, this method is provided to get the parameters
+            using a more user friendly notation.
+         
+            \return Parameters in canonical form (tx, ty, theta, scale)
+         
+         */
+        ParamType getParametersInCanonicalRepresentation()
+        {
+            // See http://math.stackexchange.com/questions/13150
+            
+            ParamType p;
+            p(0,0) = _m(0, 2);
+            p(1,0) = _m(1, 2);
+            
+            p(2,0) = std::atan2(-_m(0,1), _m(0,0));
+            p(3,0) = std::sqrt(_m(0,0) * _m(0,0) + _m(0,1) * _m(0, 1)); // assume positive scaling factors
+            
+            
+            return p;
         }
         
         /**

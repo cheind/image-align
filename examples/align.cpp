@@ -59,6 +59,30 @@ void perturbateWarp(ia::Warp<ia::WARP_EUCLIDEAN> &w) {
     w.setParameters(params);
 }
 
+void initializeWarp(cv::Size templateSize, cv::Size targetSize, ia::Warp<ia::WARP_SIMILARITY> &w) {
+    ia::WarpTraits<ia::WARP_SIMILARITY>::ParamType params;
+    
+    params(0,0) = cv::theRNG().uniform(0.f, (float)(targetSize.width - templateSize.width));
+    params(1,0) = cv::theRNG().uniform(0.f, (float)(targetSize.height - templateSize.height));
+    params(2,0) = cv::theRNG().uniform(0.f, 3.1415f * 0.5f);
+    params(3,0) = cv::theRNG().uniform(0.5f, 1.5f);
+    
+    w.setParametersInCanonicalRepresentation(params);
+}
+
+void perturbateWarp(ia::Warp<ia::WARP_SIMILARITY> &w) {
+    
+    // Note parameters are tx, ty, a and b. So we rather use the canoncial form
+    ia::WarpTraits<ia::WARP_SIMILARITY>::ParamType params = w.getParametersInCanonicalRepresentation();
+    
+    params(0,0) += cv::theRNG().gaussian(8.f);
+    params(1,0) += cv::theRNG().gaussian(8.f);
+    params(2,0) += cv::theRNG().gaussian(0.2f);
+    params(3,0) += cv::theRNG().gaussian(0.1f);
+    
+    w.setParametersInCanonicalRepresentation(params);
+}
+
 template<int WarpType>
 void drawRectOfTemplate(cv::Mat &img, const ia::Warp<WarpType> &w, cv::Size tplSize, cv::Scalar color) {
     
@@ -75,8 +99,8 @@ void drawRectOfTemplate(cv::Mat &img, const ia::Warp<WarpType> &w, cv::Size tplS
 
 int main(int argc, char **argv)
 {
-    typedef ia::Warp<ia::WARP_EUCLIDEAN> WarpType;
-    typedef ia::AlignForwardAdditive<ia::WARP_EUCLIDEAN> AlignType;
+    typedef ia::Warp<ia::WARP_SIMILARITY> WarpType;
+    typedef ia::AlignForwardAdditive<ia::WARP_SIMILARITY> AlignType;
     
     cv::theRNG().state = cv::getTickCount();
     
@@ -118,7 +142,8 @@ int main(int argc, char **argv)
         AlignType at;
         at.prepare(tpl, target);
         
-        while (cv::norm(at.align(w).lastIncrement()) > 0.1f) {
+        int iter = 0;
+        while (cv::norm(at.align(w).lastIncrement()) > 0.1f && iter++ < 100) {
             incrementals.push_back(w);
         }
         

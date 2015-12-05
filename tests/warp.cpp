@@ -101,14 +101,20 @@ TEST_CASE("warp-similarity")
     REQUIRE(w.getParameters()(2,0) == 0.f);
     REQUIRE(w.getParameters()(3,0) == 0.f);
     
-    w.setParameters(5.f, 5.f, 3.1415f, 2.f);
+    w.setParametersInCanonicalRepresentation(Traits::ParamType(5.f, 5.f, 1.7f, 2.0f));
+    Traits::ParamType pr = w.getParametersInCanonicalRepresentation();
+    REQUIRE(pr(0,0) == Catch::Detail::Approx(5));
+    REQUIRE(pr(1,0) == Catch::Detail::Approx(5));
+    REQUIRE(pr(2,0) == Catch::Detail::Approx(1.7));
+    REQUIRE(pr(3,0) == Catch::Detail::Approx(2));
+    
+    w.setParametersInCanonicalRepresentation(Traits::ParamType(5.f, 5.f, 3.1415f, 2.f));
     
     cv::Point2f x(0.f, 0.f);
     cv::Point2f wx = w(x);
     
     REQUIRE(wx.x == 5.f);
     REQUIRE(wx.y == 5.f);
-    
     
     x = cv::Point2f(10.f, 15.f);
     wx = w(x);
