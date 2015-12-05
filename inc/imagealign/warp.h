@@ -43,7 +43,8 @@ namespace imagealign {
      
     */
     enum EWarpMode {
-        WARP_TRANSLATION
+        WARP_TRANSLATION,
+        WARP_EUCLIDEAN
     };
     
     
@@ -92,10 +93,13 @@ namespace imagealign {
     template<int WarpMode>
     struct WarpTraits;
     
-    template<>
-    struct WarpTraits<WARP_TRANSLATION> {
+    /** 
+        Default warp traits implementation for compile time known parameter sizes.
+     */
+    template<int NParams>
+    struct WarpTraitsForDoF {
         enum {
-            NParameters = 2
+            NParameters = NParams
         };
         
         /** Type to hold parameters of warp. */
@@ -109,11 +113,20 @@ namespace imagealign {
         
         /** Type to hold the steepest descent image for a single pixel */
         typedef cv::Matx<float, 1, NParameters> PixelSDIType;
-        
-        /** Type to hold the transposed steepest descent image for a single pixel */
-        typedef cv::Matx<float, NParameters, 1> PixelSDITransposedType;
-        
+
     };
+    
+    /**
+        Warp traits for translational motion.
+     */
+    template<>
+    struct WarpTraits<WARP_TRANSLATION> : WarpTraitsForDoF<2> {};
+    
+    /**
+     Warp traits for Euclidean motion.
+     */
+    template<>
+    struct WarpTraits<WARP_EUCLIDEAN> : WarpTraitsForDoF<3> {};
 
     
     /** 
@@ -125,8 +138,7 @@ namespace imagealign {
     template<>
     class Warp<WARP_TRANSLATION> : public PlanarWarp {
     public:
-        
-        
+
         /** Get warp parameters */
         typename WarpTraits<WARP_TRANSLATION>::ParamType getParameters() const {
             return WarpTraits<WARP_TRANSLATION>::ParamType(_m(0, 2), _m(1, 2));
@@ -141,7 +153,7 @@ namespace imagealign {
         /** Compute the jacobian of the warp.
             
             The Jacobian matrix contains the partial derivatives of the warp parameters
-            with respect to x and y coordinates, evaluated at the current value of parameters.
+            with respect to x and y coordinates, evaluated at the given pixel position.
             In this case:
                 
                    tx   ty
@@ -149,13 +161,71 @@ namespace imagealign {
                 y   0    1
          
          */
-        WarpTraits<WARP_TRANSLATION>::JacobianType jacobian() const {
+        WarpTraits<WARP_TRANSLATION>::JacobianType jacobian(const cv::Point2f &p) const {
             WarpTraits<WARP_TRANSLATION>::JacobianType j = WarpTraits<WARP_TRANSLATION>::JacobianType::zeros();
             j(0, 0) = 1.f;
             j(1, 1) = 1.f;
             return j;
         }
     };
+    
+    /**
+        Warp implementation for pure translational motion.
+     
+        This class inherits PlanarWarp to provide a default implementation
+        for transforming image coordinates.
+     */
+    template<>
+    class Warp<WARP_EUCLIDEAN> : public PlanarWarp {
+    public:
+        
+        /** Get warp parameters */
+        typename WarpTraits<WARP_EUCLIDEAN>::ParamType getParameters() const {
+            return WarpTraits<WARP_EUCLIDEAN>::ParamType(_m(0, 2), _m(1, 2), std::acos(_m(0,0)));
+        }
+        
+        /** Set warp parameters */
+        void setParameters(const WarpTraits<WARP_TRANSLATION>::ParamType &p) {
+            _m(0, 2) = p(0, 0);
+            _m(1, 2) = p(1, 0);
+            
+            float c = std::cos(p(2, 0));
+            float s = std::sin(p(2, 0));
+            
+            _m(0,0) = c;
+            _m(0,1) = -s;
+            _m(1,0) = s;
+            _m(1,1) = c;
+        }
+        
+        /** 
+            Compute the jacobian of the warp.
+         
+            The Jacobian matrix contains the partial derivatives of the warp parameters
+            with respect to x and y coordinates, evaluated at the current value of parameters.
+            In this case:
+         
+                tx   ty  theta
+            x   1    0     -sin(theta)x - cos(theta)y
+            y   0    1     cos(theta)x - sin(theta)y
+         
+         */
+        WarpTraits<WARP_TRANSLATION>::JacobianType jacobian(const cv::Point2f &p) const {
+            WarpTraits<WARP_TRANSLATION>::JacobianType j = WarpTraits<WARP_TRANSLATION>::JacobianType::zeros();
+            j(0, 0) = 1.f;
+            j(1, 1) = 1.f;
+            
+            float c = _m(1, 1); // cos(theta)
+            float s = _m(1, 0); // sin(theta)
+            
+            j(0, 2) = -s * p.x - c * p.y;
+            j(1, 2) = c * p.x - s * p.y;
+
+            
+            return j;
+        }
+    };
+
     
     
     /**

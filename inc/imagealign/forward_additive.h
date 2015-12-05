@@ -85,7 +85,6 @@ namespace imagealign {
             typedef typename WarpTraits<WarpMode>::PixelSDIType PixelSDIType;
             typedef typename WarpTraits<WarpMode>::ParamType ParamType;
             
-            JacobianType jacobian = w.jacobian();
             HessianType hessian = HessianType::zeros();
             ParamType b = ParamType::zeros();
 
@@ -110,21 +109,24 @@ namespace imagealign {
                     // 3. Compute the target gradient warped back
                     const cv::Matx<float, 1, 2> grad = gradient<float>(target, ptgt);
                     
-                    // 4. Compute the steepest descent image (SDI) for current pixel location
+                    // 4. Compute the jacobian for the template pixel position
+                    JacobianType jacobian = w.jacobian(ptpl);
+                    
+                    // 5. Compute the steepest descent image (SDI) for current pixel location
                     const PixelSDIType sd = grad * jacobian;
                     
-                    // 5. Update running sum of SDI times error
+                    // 6. Update running sum of SDI times error
                     b += sd.t() * err;
                     
-                    // 6. Update Hessian
+                    // 7. Update Hessian
                     hessian += sd.t() * sd;
                 }
             }
             
-            // 7. Solve Ax = b
+            // 8. Solve Ax = b
             ParamType delta = hessian.inv() * b;
             
-            // 8. Additive update of warp parameters.
+            // 9. Additive update of warp parameters.
             w.setParameters(w.getParameters() + delta);
             
             this->setLastError(sumErrors / tpl.size().area());
