@@ -19,13 +19,14 @@
 
 #include <imagealign/imagealign.h>
 #include <opencv2/opencv.hpp>
+#include <iomanip>
 
 namespace ia = imagealign;
 
 void initializeWarp(cv::Size templateSize, cv::Size targetSize, ia::Warp<ia::WARP_TRANSLATION> &w) {
     ia::WarpTraits<ia::WARP_TRANSLATION>::ParamType params;
-    params(0,0) = cv::theRNG().uniform(0, targetSize.width - templateSize.width);
-    params(1,0) = cv::theRNG().uniform(0, targetSize.height - templateSize.height);
+    params(0,0) = cv::theRNG().uniform(0.f, (float)(targetSize.width - templateSize.width));
+    params(1,0) = cv::theRNG().uniform(0.f, (float)(targetSize.height - templateSize.height));
     
     w.setParameters(params);
 }
@@ -33,8 +34,27 @@ void initializeWarp(cv::Size templateSize, cv::Size targetSize, ia::Warp<ia::WAR
 void perturbateWarp(ia::Warp<ia::WARP_TRANSLATION> &w) {
     
     ia::WarpTraits<ia::WARP_TRANSLATION>::ParamType params = w.getParameters();
-    params(0,0) += cv::theRNG().gaussian(8);
-    params(1,0) += cv::theRNG().gaussian(8);
+    params(0,0) += cv::theRNG().gaussian(8.f);
+    params(1,0) += cv::theRNG().gaussian(8.f);
+    
+    w.setParameters(params);
+}
+
+void initializeWarp(cv::Size templateSize, cv::Size targetSize, ia::Warp<ia::WARP_EUCLIDEAN> &w) {
+    ia::WarpTraits<ia::WARP_EUCLIDEAN>::ParamType params;
+    params(0,0) = cv::theRNG().uniform(0.f, (float)(targetSize.width - templateSize.width));
+    params(1,0) = cv::theRNG().uniform(0.f, (float)(targetSize.height - templateSize.height));
+    params(2,0) = cv::theRNG().uniform(0.f, 3.1415f * 0.5f);
+    
+    w.setParameters(params);
+}
+
+void perturbateWarp(ia::Warp<ia::WARP_EUCLIDEAN> &w) {
+    
+    ia::WarpTraits<ia::WARP_EUCLIDEAN>::ParamType params = w.getParameters();
+    params(0,0) += cv::theRNG().gaussian(8.f);
+    params(1,0) += cv::theRNG().gaussian(8.f);
+    params(2,0) += cv::theRNG().gaussian(0.2f);
     
     w.setParameters(params);
 }
@@ -55,8 +75,8 @@ void drawRectOfTemplate(cv::Mat &img, const ia::Warp<WarpType> &w, cv::Size tplS
 
 int main(int argc, char **argv)
 {
-    typedef ia::Warp<ia::WARP_TRANSLATION> WarpType;
-    typedef ia::AlignForwardAdditive<ia::WARP_TRANSLATION> AlignType;
+    typedef ia::Warp<ia::WARP_EUCLIDEAN> WarpType;
+    typedef ia::AlignForwardAdditive<ia::WARP_EUCLIDEAN> AlignType;
     
     cv::theRNG().state = cv::getTickCount();
     
@@ -79,6 +99,7 @@ int main(int argc, char **argv)
     
     bool done = false;
     while (!done) {
+        
         // Generate random warp
         WarpType w;
         initializeWarp(tpl.size(), target.size(), w);
@@ -128,7 +149,6 @@ int main(int argc, char **argv)
                 break;
             }
         }
-
     }
     
     return 0;
