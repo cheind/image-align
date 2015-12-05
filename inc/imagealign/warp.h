@@ -185,7 +185,7 @@ namespace imagealign {
         }
         
         /** Set warp parameters */
-        void setParameters(const WarpTraits<WARP_TRANSLATION>::ParamType &p) {
+        void setParameters(const WarpTraits<WARP_EUCLIDEAN>::ParamType &p) {
             _m(0, 2) = p(0, 0);
             _m(1, 2) = p(1, 0);
             
@@ -210,8 +210,8 @@ namespace imagealign {
             y   0    1     cos(theta)x - sin(theta)y
          
          */
-        WarpTraits<WARP_TRANSLATION>::JacobianType jacobian(const cv::Point2f &p) const {
-            WarpTraits<WARP_TRANSLATION>::JacobianType j = WarpTraits<WARP_TRANSLATION>::JacobianType::zeros();
+        WarpTraits<WARP_EUCLIDEAN>::JacobianType jacobian(const cv::Point2f &p) const {
+            WarpTraits<WARP_EUCLIDEAN>::JacobianType j = WarpTraits<WARP_EUCLIDEAN>::JacobianType::zeros();
             j(0, 0) = 1.f;
             j(1, 1) = 1.f;
             

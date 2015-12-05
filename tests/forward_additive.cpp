@@ -48,3 +48,44 @@ TEST_CASE("forward-additive")
     REQUIRE(w.getParameters()(0,0) == Catch::Detail::Approx(20).epsilon(0.01));
     REQUIRE(w.getParameters()(1,0) == Catch::Detail::Approx(20).epsilon(0.01));
 }
+
+TEST_CASE("forward-additive-euclidean")
+{
+    namespace ia = imagealign;
+    
+    typedef ia::Warp<ia::WARP_EUCLIDEAN> WarpType;
+    typedef ia::WarpTraits<ia::WARP_EUCLIDEAN> Traits;
+    typedef ia::AlignForwardAdditive<ia::WARP_EUCLIDEAN> AlignType;
+    
+    cv::Mat target(100, 100, CV_8UC1);
+    cv::randu(target, cv::Scalar::all(0), cv::Scalar::all(255));
+    cv::blur(target, target, cv::Size(5,5));
+    
+    cv::Mat tmpl = cv::Mat(20, 20, CV_8UC1);
+    
+    Traits::ParamType real(cv::theRNG().uniform(20.f, 40.f),
+                        cv::theRNG().uniform(20.f, 40.f),
+                        cv::theRNG().uniform(0.17f, 0.78f));
+    
+    WarpType w;
+    w.setParameters(real);
+    
+    ia::warpImage<uchar>(target, tmpl, tmpl.size(), w);
+    
+    // Perturbate warp
+    Traits::ParamType r(cv::theRNG().gaussian(2.f),
+                        cv::theRNG().gaussian(2.f),
+                        cv::theRNG().gaussian(0.5f));
+    
+    w.setParameters(real + r);
+    
+    AlignType al;
+    al.prepare(tmpl, target);
+    al.align(w, 100, 0.001f);
+    
+    REQUIRE(al.iteration() < 100);
+    REQUIRE(w.getParameters()(0,0) == Catch::Detail::Approx(real(0,0)).epsilon(0.01));
+    REQUIRE(w.getParameters()(1,0) == Catch::Detail::Approx(real(1,0)).epsilon(0.01));
+    REQUIRE(w.getParameters()(2,0) == Catch::Detail::Approx(real(2,0)).epsilon(0.01));
+
+}
