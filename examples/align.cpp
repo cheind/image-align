@@ -73,14 +73,16 @@ int main(int argc, char **argv)
     
     cv::Mat tpl(target.size().height / 10, target.size().width / 10, CV_8UC1);
     
+    std::cout << "Press 'n' to start a new alignment problem" << std::endl;
+    std::cout << "Press 'x' to quit" << std::endl;
+    std::cout << "Press any other key to cylce through alignment progress" << std::endl;
+    
     bool done = false;
     while (!done) {
         // Generate random warp
         WarpType w;
         initializeWarp(tpl.size(), target.size(), w);
         WarpType targetW = w;
-        
-        std::cout << targetW.getParameters().t() << std::endl;
         
         // Generate template image from target
         ia::warpImage<uchar>(target, tpl, tpl.size(), w);
@@ -95,12 +97,12 @@ int main(int argc, char **argv)
         AlignType at;
         at.prepare(tpl, target);
         
-        int iter = 0;
-        while (iter < 100) {
-            at.align(w);
-            ++iter;
+        while (cv::norm(at.align(w).lastIncrement()) > 0.1f) {
             incrementals.push_back(w);
         }
+        
+        std::cout << "Completed after " << at.iteration() << " iterations. Last error: " << at.lastError() << std::endl;
+        
         
         cv::Mat display;
         cv::cvtColor(target, display, CV_GRAY2BGR);
@@ -117,8 +119,6 @@ int main(int argc, char **argv)
             cv::Mat dispClone = display.clone();
             drawRectOfTemplate(dispClone, incrementals[i], tpl.size(), cv::Scalar(0, 255, 0));
             
-            std::cout << incrementals[i].getParameters().t() << std::endl;
-            
             cv::imshow("Image", dispClone);
             int key = cv::waitKey();
             if (key == 'x') {
@@ -128,8 +128,7 @@ int main(int argc, char **argv)
                 break;
             }
         }
-        
-        // Visualize
+
     }
     
     return 0;
