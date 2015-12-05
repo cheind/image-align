@@ -24,6 +24,7 @@
 #include <imagealign/bilinear.h>
 #include <imagealign/gradient.h>
 #include <opencv2/core/core.hpp>
+#include <iostream>
 
 namespace imagealign {
     
@@ -98,8 +99,10 @@ namespace imagealign {
                     cv::Point2f ptpl(x + 0.5f, y + 0.5f);
                     const float templateIntensity = tplRow[x];
                     
+                    cv::Point2f ptplOrig = this->scaleUp(ptpl);
+                    
                     // 1. Warp target pixel back to template using w
-                    cv::Point2f ptgt = w(ptpl);
+                    cv::Point2f ptgt = this->scaleDown(w(ptplOrig));
                     const float targetIntensity = bilinear<float>(target, ptgt);
                     
                     // 2. Compute the error
@@ -110,7 +113,7 @@ namespace imagealign {
                     const cv::Matx<float, 1, 2> grad = gradient<float>(target, ptgt);
                     
                     // 4. Compute the jacobian for the template pixel position
-                    JacobianType jacobian = w.jacobian(ptpl);
+                    JacobianType jacobian = w.jacobian(ptplOrig);
                     
                     // 5. Compute the steepest descent image (SDI) for current pixel location
                     const PixelSDIType sd = grad * jacobian;

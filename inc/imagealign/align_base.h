@@ -22,6 +22,9 @@
 
 #include <imagealign/warp.h>
 #include <opencv2/core/core.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/opencv.hpp>
+#include <vector>
 
 namespace imagealign {
     
@@ -42,19 +45,34 @@ namespace imagealign {
          
             \param tmpl Single channel template image
             \param target Single channel target image to align template with.
+            \param pyramidLevels Maximum number of pyramid levels to generate.
          */
-        void prepare(cv::InputArray tmpl, cv::InputArray target)
+        void prepare(cv::InputArray tmpl, cv::InputArray target, int pyramidLevels)
         {
             // Do the basic thing everyone needs
             CV_Assert(tmpl.channels() == 1);
             CV_Assert(target.channels() == 1);
             
-            tmpl.getMat().convertTo(_template, CV_32F);
-            target.getMat().convertTo(_target, CV_32F);
+            pyramidLevels = std::max<int>(pyramidLevels, 1);
             
-            _error = std::numeric_limits<float>::max();
+            _targetPyramid.resize(pyramidLevels);
+            _templatePyramid.resize(pyramidLevels);
+            
+            tmpl.getMat().convertTo(_templatePyramid[0], CV_32F);
+            target.getMat().convertTo(_targetPyramid[0], CV_32F);
+            
+            for (int i = 1; i < pyramidLevels; ++i) {
+                cv::resize(_templatePyramid[i-1], _templatePyramid[i], cv::Size(0,0), 0.5, 0.5, CV_INTER_LINEAR);
+                cv::resize(_targetPyramid[i-1], _targetPyramid[i], cv::Size(0,0), 0.5, 0.5, CV_INTER_LINEAR);
+            }
+            
+            // Convention is to have coarsest level at front
+            std::reverse(_templatePyramid.begin(), _templatePyramid.end());
+            std::reverse(_targetPyramid.begin(), _targetPyramid.end());
+            
             _inc = WarpTraits<WarpMode>::ParamType::zeros();
             _iter = 0;
+            setLevel(0);
             
             // Invoke prepare of derived
             static_cast<Derived*>(this)->prepareImpl();
@@ -77,10 +95,11 @@ namespace imagealign {
         }
         
         /**
-            Perform multiple iterations of alignement until a stopping criterium is reached.
+            Perform multiple alignment iterations until a stopping criterium is reached.
          
             This method takes the current state of the warp parameters and refines
-            them by minimizing the energy function of the derived class.
+            them by minimizing the energy function of the derived class. All iterations 
+            are performed on the same level.
          
             \param w Current state of warp estimation. Will be modified to hold result.
             \param maxIterations Stops after maxIterations have been performed.
@@ -95,6 +114,29 @@ namespace imagealign {
             }
             
             return *this;
+        }
+        
+        /**
+            Switch to another hierarchy level.
+        */
+        SelfType &setLevel(int level) {
+            
+            const int totalLevels = (int)_templatePyramid.size();
+            level = std::max<int>(0, std::min<int>(level, totalLevels - 1));
+            _level = level;
+            // Errors between levels are not compatible.
+            _error = std::numeric_limits<float>::max();
+            _scaleFactorToOriginal = std::pow(2.f, (float)totalLevels - _level - 1);
+            _scaleFactorFromOriginal = 1.f / _scaleFactorToOriginal;
+            
+            return *this;
+        }
+        
+        /** 
+            Return current hierarchy level.
+         */
+        int level() const {
+            return _level;
         }
         
         /**
@@ -133,19 +175,33 @@ namespace imagealign {
         }
         
         cv::Mat templateImage() {
-            return _template;
+            return _templatePyramid[_level];
         }
         
         cv::Mat targetImage() {
-            return _target;
+            return _targetPyramid[_level];
+        }
+        
+        inline cv::Point2f scaleUp(const cv::Point2f x) const
+        {
+            return x * _scaleFactorToOriginal;
+        }
+        
+        inline cv::Point2f scaleDown(const cv::Point2f x) const
+        {
+            return x * _scaleFactorFromOriginal;
         }
         
     private:
         
-        cv::Mat _template;
-        cv::Mat _target;
+        std::vector<cv::Mat> _templatePyramid;
+        std::vector<cv::Mat> _targetPyramid;
+        
+        int _level;
         int _iter;
         float _error;
+        float _scaleFactorToOriginal;
+        float _scaleFactorFromOriginal;
         typename WarpTraits<WarpMode>::ParamType _inc;
     };
     

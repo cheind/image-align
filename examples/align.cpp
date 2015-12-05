@@ -75,10 +75,10 @@ void perturbateWarp(ia::Warp<ia::WARP_SIMILARITY> &w) {
     // Note parameters are tx, ty, a and b. So we rather use the canoncial form
     ia::WarpTraits<ia::WARP_SIMILARITY>::ParamType params = w.getParametersInCanonicalRepresentation();
     
-    params(0,0) += cv::theRNG().gaussian(8.f);
-    params(1,0) += cv::theRNG().gaussian(8.f);
+    params(0,0) += cv::theRNG().gaussian(5.f);
+    params(1,0) += cv::theRNG().gaussian(5.f);
     params(2,0) += cv::theRNG().gaussian(0.2f);
-    params(3,0) += cv::theRNG().gaussian(0.1f);
+    params(3,0) += cv::theRNG().gaussian(0.05f);
     
     w.setParametersInCanonicalRepresentation(params);
 }
@@ -139,12 +139,21 @@ int main(int argc, char **argv)
         std::vector<WarpType> incrementals;
         incrementals.push_back(w);
         
+        const int levels = 3;
         AlignType at;
-        at.prepare(tpl, target);
+        at.prepare(tpl, target, levels);
         
-        int iter = 0;
-        while (cv::norm(at.align(w).lastIncrement()) > 0.1f && iter++ < 100) {
-            incrementals.push_back(w);
+        int iterationsPerLevel[] = {10, 10, 5};
+        
+        for (int i = 0; i < levels; ++i) {
+            int iter = 0;
+            at.setLevel(i);
+            
+            while (iter++ < iterationsPerLevel[i]) {
+                at.align(w);
+                incrementals.push_back(w);
+            }
+            
         }
         
         std::cout << "Completed after " << at.iteration() << " iterations. Last error: " << at.lastError() << std::endl;

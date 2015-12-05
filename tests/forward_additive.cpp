@@ -37,7 +37,7 @@ TEST_CASE("forward-additive")
     cv::Mat tmpl = target(cv::Rect(20, 20, 10, 10));
     
     AlignType al;
-    al.prepare(tmpl, target);
+    al.prepare(tmpl, target, 1);
     
     WarpType w;
     w.setParameters(Traits::ParamType(15, 15));
@@ -80,7 +80,7 @@ TEST_CASE("forward-additive-euclidean")
     w.setParameters(real + r);
     
     AlignType al;
-    al.prepare(tmpl, target);
+    al.prepare(tmpl, target, 1);
     al.align(w, 100, 0.001f);
     
     REQUIRE(al.iteration() < 100);
@@ -125,7 +125,7 @@ TEST_CASE("forward-additive-similarity")
     w.setParametersInCanonicalRepresentation(real + r);
     
     AlignType al;
-    al.prepare(tmpl, target);
+    al.prepare(tmpl, target, 1);
     al.align(w, 100, 0.001f);
     
     REQUIRE(al.iteration() < 100);
