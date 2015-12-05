@@ -14,6 +14,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR} ${OpenCV_INCLUDE_DIRS} "inc")
 # Library
 add_library(ialign
     inc/imagealign/imagealign.h
+    inc/imagealign/gradient.h
     inc/imagealign/bilinear.h
     inc/imagealign/warp.h
     inc/imagealign/align_base.h

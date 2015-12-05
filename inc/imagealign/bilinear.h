@@ -25,30 +25,30 @@
 #include <opencv2/imgproc/imgproc.hpp>
 
 namespace imagealign {
-
-    /** 
+    
+    /**
         Bilinear image interpolation for single channel images.
-        
+     
         This library assumes pixel origins at pixel centers, hence the half-pixel
         offset in the beginning.
      */
     template<class Scalar>
-    inline Scalar bilinear(const cv::Mat &img, const cv::Point2f &p)
+    inline Scalar bilinear(const cv::Mat &img, float x, float y)
     {
-        float x = p.x - 0.5f;
-        float y = p.y - 0.5f;
-    
+        x -= 0.5f;
+        y -=0.5f;
+        
         const int ix = static_cast<int>(std::floor(x));
         const int iy = static_cast<int>(std::floor(y));
-
+        
         int x0 = cv::borderInterpolate(ix, img.cols, cv::BORDER_REFLECT_101);
         int x1 = cv::borderInterpolate(ix + 1, img.cols, cv::BORDER_REFLECT_101);
         int y0 = cv::borderInterpolate(iy, img.rows, cv::BORDER_REFLECT_101);
         int y1 = cv::borderInterpolate(iy + 1, img.rows, cv::BORDER_REFLECT_101);
-
+        
         float a = x - (float)ix;
         float b = y - (float)iy;
-
+        
         const Scalar f0 = img.at<Scalar>(y0, x0);
         const Scalar f1 = img.at<Scalar>(y0, x1);
         const Scalar f2 = img.at<Scalar>(y1, x0);
@@ -57,6 +57,19 @@ namespace imagealign {
         return cv::saturate_cast<Scalar>((f0 * (float(1) - a) + f1 * a) * (float(1) - b) +
                                          (f2 * (float(1) - a) + f3 * a) * b);
     }
+
+    /**
+        Bilinear image interpolation for single channel images.
+        
+        This library assumes pixel origins at pixel centers, hence the half-pixel
+        offset in the beginning.
+     */
+    template<class Scalar>
+    inline Scalar bilinear(const cv::Mat &img, const cv::Point2f &p)
+    {
+        return bilinear<Scalar>(img, p.x, p.y);
+    }
+
 }
 
 #endif

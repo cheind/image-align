@@ -22,9 +22,8 @@
 
 #include <imagealign/align_base.h>
 #include <imagealign/bilinear.h>
+#include <imagealign/gradient.h>
 #include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <iostream>
 
 namespace imagealign {
     
@@ -40,11 +39,6 @@ namespace imagealign {
         direction of the warp is forward and warp parameters are summed.
      
         \tparam WarpType Type of warp motion to use during alignment. See EWarpType.
-     
-        ## Notes
-     
-        The implementation is not trimmed towards runtime nor memory efficiency. Some images
-        are explicitely created for the sake of readability of the code.
      
         ## Based on
      
@@ -70,22 +64,7 @@ namespace imagealign {
          */
         void prepareImpl()
         {
-            cv::Mat tpl = this->templateImage();
-            cv::Mat target = this->targetImage();
-            
-            _warpedTarget.create(tpl.size(), CV_32FC1);
-            _errorImage.create(tpl.size(), CV_32FC1);
-            _warpedGradX.create(tpl.size(), CV_32FC1);
-            _warpedGradY.create(tpl.size(), CV_32FC1);
-            
-            
-            cv::Sobel(target, _gradX, CV_32F, 1, 0);
-            cv::Sobel(target, _gradY, CV_32F, 0, 1);
-            
-            // Sobel uses 3x3 convolution matrix and result is not in units
-            // of intensity anymore. Hence, normalize
-            _gradX *= 0.125f;
-            _gradY *= 0.125f;
+            // Nothing todo here. Gradient is computed on the fly.
         }
         
         /** 
@@ -101,55 +80,59 @@ namespace imagealign {
             cv::Mat tpl = this->templateImage();
             cv::Mat target = this->targetImage();
             
-            // Warp target back to template with respect to current warp parameters
-            warpImage<float>(target, _warpedTarget, _warpedTarget.size(), w);
-            
-            // Warp the gradient
-            warpImage<float>(_gradX, _warpedGradX, _warpedGradX.size(), w);
-            warpImage<float>(_gradY, _warpedGradY, _warpedGradY.size(), w);
-            
-            // Compute the error image
-            _errorImage = tpl - _warpedTarget;
-            
             typedef typename WarpTraits<WarpMode>::JacobianType JacobianType;
             typedef typename WarpTraits<WarpMode>::HessianType HessianType;
             typedef typename WarpTraits<WarpMode>::PixelSDIType PixelSDIType;
-            typedef typename WarpTraits<WarpMode>::PixelSDITransposedType PixelSDITransposedType;
+            typedef typename WarpTraits<WarpMode>::ParamType ParamType;
             
             JacobianType jacobian = w.jacobian();
             HessianType hessian = HessianType::zeros();
-            PixelSDITransposedType sumSDITimesError = PixelSDITransposedType::zeros();
+            ParamType b = ParamType::zeros();
+
+            float sumErrors = 0.f;
             
-            // Loop over template region
             for (int y = 0; y < tpl.rows; ++y) {
                 
-                const float *gxRow = _warpedGradX.ptr<float>(y);
-                const float *gyRow = _warpedGradY.ptr<float>(y);
-                const float *eRow = _errorImage.ptr<float>(y);
+                const float *tplRow = tpl.ptr<float>(y);
                 
                 for (int x = 0; x < tpl.cols; ++x) {
-                    const PixelSDIType sd = cv::Matx<float, 1, 2>(gxRow[x], gyRow[x]) * jacobian;
-                    sumSDITimesError += (sd.t() * eRow[x]);
+                    cv::Point2f ptpl(x + 0.5f, y + 0.5f);
+                    const float templateIntensity = tplRow[x];
+                    
+                    // 1. Warp target pixel back to template using w
+                    cv::Point2f ptgt = w(ptpl);
+                    const float targetIntensity = bilinear<float>(target, ptgt);
+                    
+                    // 2. Compute the error
+                    const float err = templateIntensity - targetIntensity;
+                    sumErrors += err * err;
+                    
+                    // 3. Compute the target gradient warped back
+                    const cv::Matx<float, 1, 2> grad = gradient<float>(target, ptgt);
+                    
+                    // 4. Compute the steepest descent image (SDI) for current pixel location
+                    const PixelSDIType sd = grad * jacobian;
+                    
+                    // 5. Update running sum of SDI times error
+                    b += sd.t() * err;
+                    
+                    // 6. Update Hessian
                     hessian += sd.t() * sd;
                 }
             }
             
-            typename WarpTraits<WarpMode>::ParamType delta = hessian.inv() * sumSDITimesError;
+            // 7. Solve Ax = b
+            ParamType delta = hessian.inv() * b;
             
-            // Additive warp parameter update.
+            // 8. Additive update of warp parameters.
             w.setParameters(w.getParameters() + delta);
             
-            this->setLastError(cv::mean(_errorImage)[0]);
+            this->setLastError(sumErrors / tpl.size().area());
             this->setLastIncrement(delta);
         }
         
     private:
         friend class AlignBase< AlignForwardAdditive<WarpMode>, WarpMode>;
-        
-        cv::Mat _warpedTarget;
-        cv::Mat _errorImage;
-        cv::Mat _gradX, _gradY;
-        cv::Mat _warpedGradX, _warpedGradY;
     };
     
     
