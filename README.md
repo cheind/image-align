@@ -2,6 +2,8 @@
 
 **Image Align** is a tiny C++ library providing sample implementations of variants of the classic image alignment algorithm by Lucas-Kanade.
 
+![Image Align under Euclidean Motion](etc/euclidean.gif)
+
 The project emerged while working on [AAM](https://www.github.com/cheind/aam), an active appearance models library. Fitting active appearance models is similar to the classic image alignment problem: fit a template image to given target image through optimizing a parametrized warp function in such a way that a given energy function, measuring the difference between the warped target image and the template image, is minimized. 
 
 In AAMs the thoughtafter warp function is rather (piecewise affine transforms) complex and the fitting process involves estimation of more parameters than just the warp parameters. 
@@ -15,6 +17,13 @@ All image alignment algorithms implemented in this library are based on the orig
  - Forward additive algorithm
  - Forward compositional algorithm
  - Inverse compositional algorithm
+
+The alignment algorithms are independent of the chosen warp function. Currently the library provides the following warp modes
+
+ - 2D Translational Warp
+ - 2D Euclidean Warp 
+ - 2D Similarity Warp
+ - 2D Affine Warp
 
 # Building from source
 **Image Alignment** requires the following pre-requisites
