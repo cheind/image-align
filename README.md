@@ -9,13 +9,15 @@ similar to the classic image alignment problem:
 
 > The goal of image alignment is to find the locally 'best' transform between a template image and a target image by minimizing an energy function measuring the fitness of the alignment. -- <cite>Ian Matthews</cite>
  
-# Algorithms
+# Algorithms and Features
 
 All image alignment algorithms implemented in this library are based on the original formulation of [Lucas-Kanade](#Lucas81):
 
  - Forward additive algorithm
  - Forward compositional algorithm
  - Inverse compositional algorithm
+
+For convergence and runtime reasons all algorithms support **multi-level hierarchical** matching.
 
 The alignment algorithms are independent of the chosen warp function. Currently the library provides the following warp modes:
 
@@ -24,7 +26,7 @@ The alignment algorithms are independent of the chosen warp function. Currently 
  - 2D Similarity Warp
  - 2D Affine Warp
 
- User defined warp functions can be easily added.
+User defined warp functions can be easily added. 
 
 # Building from source
 **Image Alignment** requires the following pre-requisites
