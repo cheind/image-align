@@ -126,6 +126,7 @@ namespace imagealign {
             _level = level;
             // Errors between levels are not compatible.
             _error = std::numeric_limits<float>::max();
+            _errorChange = std::numeric_limits<float>::max();
             _scaleFactorToOriginal = std::pow(2.f, (float)totalLevels - _level - 1);
             _scaleFactorFromOriginal = 1.f / _scaleFactorToOriginal;
             
@@ -149,9 +150,23 @@ namespace imagealign {
         }
         
         /**
+            Return the error change.
+         
+            The error change is calculated as the difference of previous error - current error. 
+            A positive value signals a decrease in error, while a negative one corresponds to 
+            an increase of error.
+         
+            \return the error change.
+         */
+        float errorChange() const {
+            return _errorChange;
+        }
+        
+        /**
             Access the number of iterations performed.
          
-            The number of iterations is counted from last invocation of prepare.
+            The number of iterations is counted from last invocation of prepare and is independent
+            of switches in hierarchy levels.
         */
         int iteration() const {
             return _iter;
@@ -167,6 +182,7 @@ namespace imagealign {
     protected:
         
         void setLastError(float err) {
+            _errorChange = _error - err;
             _error = err;
         }
         
@@ -200,6 +216,7 @@ namespace imagealign {
         int _level;
         int _iter;
         float _error;
+        float _errorChange;
         float _scaleFactorToOriginal;
         float _scaleFactorFromOriginal;
         typename WarpTraits<WarpMode>::ParamType _inc;
