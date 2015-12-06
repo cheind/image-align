@@ -163,9 +163,10 @@ int main(int argc, char **argv)
             int iter = 0;
             at.setLevel(i);
             
-            while (iter++ < iterationsPerLevel[i] && at.errorChange() > 0.f) {
+            while (iter < iterationsPerLevel[i] && at.errorChange() > 0.f && (iter == 0 || cv::norm(at.lastIncrement()) > 0.001f)) {
                 at.align(w);
                 incrementals.push_back(w);
+                ++iter;
             }
             
         }
