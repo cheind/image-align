@@ -99,12 +99,22 @@ void drawRectOfTemplate(cv::Mat &img, const ia::Warp<WarpType> &w, cv::Size tplS
 
 int main(int argc, char **argv)
 {
-    typedef ia::Warp<ia::WARP_SIMILARITY> WarpType;
-    typedef ia::AlignInverseCompositional<ia::WARP_SIMILARITY> AlignType;
     
-    //cv::theRNG().state = cv::getTickCount();
+    // Choose a warp
+    const int WarpMode = ia::WARP_SIMILARITY;
+    // const int WarpMode = ia::WARP_EUCLIDEAN;
+    // const int WarpMode = ia::WARP_TRANSLATION;
     
-    // Random target image
+    typedef ia::Warp<WarpMode> WarpType;
+    
+    // Choose an alignment strategy
+    typedef ia::AlignInverseCompositional<WarpMode> AlignType;
+    // typedef ia::AlignForwardAdditive<ia::WARP_SIMILARITY> AlignType;
+    // typedef ia::AlignForwardCompositional<ia::WARP_SIMILARITY> AlignType;
+    
+    
+    cv::theRNG().state = cv::getTickCount();
+    
     cv::Mat target;
     
     if (argc == 1) {

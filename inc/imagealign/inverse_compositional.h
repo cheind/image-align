@@ -107,7 +107,8 @@ namespace imagealign {
                         const cv::Matx<float, 1, 2> grad = gradient<float>(tpl, p);
                         
                         // 2. Evaluate the Jacobian of image location.
-                        // Note: Jacobians are fetched corresponding to finest pyramid level
+                        // Note: Jacobians are computed with pixel positions corresponding
+                        // to the finest pyramid level.
                         JacobianType jacobian = w.jacobian(p * s);
                         
                         // 3. Compute steepest descent images
