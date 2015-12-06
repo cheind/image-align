@@ -8,7 +8,7 @@ The project emerged while working on [AAM](https://www.github.com/cheind/aam), a
 similar to the classic image alignment problem: 
 
 > The goal of image alignment is to find the locally 'best' transform between a template image and a target image by minimizing an energy function measuring the fitness of the alignment. -- <cite>Ian Matthews</cite>
- 
+
 # Algorithms and Features
 
 All image alignment algorithms implemented in this library are based on the original formulation of [Lucas-Kanade](#Lucas81):
@@ -27,6 +27,48 @@ The alignment algorithms are independent of the chosen warp function. Currently 
  - 2D Affine Warp
 
 User defined warp functions can be easily added. 
+
+# Usage
+
+**Image Align** is quite simple to use. Start by including the necessary headers
+
+```C++
+#include <imagealign/imagealign.h>
+```
+
+Next, declare the type of warp and alignment strategy you wish to use
+
+```C++
+namespace ia = imagealign;
+
+const int WarpMode = ia::WARP_SIMILARITY;
+
+typedef ia::Warp<WarpMode> WarpType;
+typedef ia::AlignInverseCompositional<WarpMode> AlignType;
+```
+
+Given a template image and a target image you can now perform alignment
+
+```C++
+
+cv::Mat tpl;    // The template image
+cv::Mat target; // The target image
+
+namespace ia = imagealign;
+
+// Instance necessary objects
+WarpType w;
+AlignType a;
+
+// Prepare for alignment using 3 levels of hierarchy
+a.prepare(tpl, target, 3);
+
+// Align
+int maxIterationsPerLevel[] = {30, 30, 15};
+a.align(w, iterationsPerLevel);
+```
+
+When alignment has finished, ``w`` will hold the warp that best aligns the template image with the target image. Please note, Lucas-Kanade methods are locally operating methods that require a good guess of true warp parameters to converge. To provide a guess, simple adjust the parameters of ``w`` using methods such as ``w.setParameters()`` and similar before calling ``a.align()``.
 
 # Building from source
 **Image Alignment** requires the following pre-requisites
