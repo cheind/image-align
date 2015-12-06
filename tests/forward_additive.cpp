@@ -20,6 +20,7 @@
 #include "catch.hpp"
 
 #include <imagealign/forward_additive.h>
+#include <imagealign/warp_image.h>
 #include <opencv2/opencv.hpp>
 
 TEST_CASE("forward-additive")

@@ -20,7 +20,6 @@
 #ifndef IMAGE_ALIGN_WARP_H
 #define IMAGE_ALIGN_WARP_H
 
-#include <imagealign/sampling.h>
 #include <opencv2/core/core.hpp>
 
 namespace imagealign {
@@ -374,49 +373,6 @@ namespace imagealign {
         }
         
     };
-
-
-    /**
-        Warp an image using bilinear interpolation.
-     
-        This method warps a given source image onto a given destination image. It assumes the direction
-        of the warp is such that for given pixel in the destination image, the warp reports the corresponding
-        pixel in the source image.
-     
-        This method will call create on the destination image.
-     
-        \param src_ Source image
-        \param dst_ Destination image
-        \param dstSize Size of destination image
-        \param scaleUp Optional scale up factor. Used with different levels of hierarchy
-        \param scaleDown Optional scale down factor. Used with different levels of hierarchy
-        \param w Warp function
-     */
-    template<class ChannelType, int SampleMethod, int WarpType>
-    void warpImage(cv::InputArray src_, cv::OutputArray dst_, cv::Size dstSize, const Warp<WarpType> &w, const Sampler<SampleMethod> &s = Sampler<SampleMethod>(),float scaleUp = 1.f, float scaleDown = 1.f)
-    {
-        CV_Assert(src_.channels() == 1);
-        
-        dst_.create(dstSize, src_.type());
-        
-        cv::Mat src = src_.getMat();
-        cv::Mat dst = dst_.getMat();
-        
-        for (int y = 0; y < dstSize.height; ++y) {
-            ChannelType *r = dst.ptr<ChannelType>(y);
-            
-            for (int x = 0; x < dstSize.width; ++x) {
-                cv::Point2f wp = w(cv::Point2f(x + 0.5f, y + 0.5f) * scaleUp) * scaleDown;
-                r[x] = s.template sample<ChannelType>(src, wp);
-            }
-        }
-    }
-    
-    
-    
-    
-    
-    
 }
 
 #endif

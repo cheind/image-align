@@ -24,6 +24,7 @@
 #include <imagealign/sampling.h>
 #include <imagealign/gradient.h>
 #include <imagealign/warp_update.h>
+#include <imagealign/warp_image.h>
 #include <opencv2/core/core.hpp>
 
 namespace imagealign {
