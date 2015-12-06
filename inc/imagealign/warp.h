@@ -57,13 +57,123 @@ namespace imagealign {
     /** 2D Perspective motion. See Warp<WARP_PERSPECTIVE>. */
     const int WARP_PERSPECTIVE = 4;
     
+    /** 
+        Each warp needs to provide traits.
+     
+        These traits usually provide matrix types during alignment.
+        In the following N corresponds to the number of parameters of the
+        warp.
+     */
+    template<int WarpMode>
+    struct WarpTraits {
+        /** Type to hold parameters of warp. Matrix of size Nx1.*/
+        typedef void ParamType;
+        
+        /** Type to hold Jacobian of warp. Matrix of size 2xN. */
+        typedef void JacobianType;
+        
+        /** Type to hold Hessian matrix. Matrix of size NxN. */
+        typedef void HessianType;
+        
+        /** Type to hold the steepest descent image for a single pixel. Matrix of size 1xN. */
+        typedef void PixelSDIType;
+    };
+    
+    
+    /** 
+        Interface declaration for warps.
+     
+        Custom warps should at least offer the given methods and constructors.
+    */
+    template<int WarpMode>
+    class Warp {
+    public:
+        /** Be copy-constructible from another warp. */
+        Warp(const Warp<WarpMode> &other);
+        
+        /** Be able to set to identity transform. */
+        void setIdentity();
+        
+        /** Be able to warp single pair of image coordinates. */
+        inline cv::Point2f operator()(const cv::Point2f &p) const;
+        
+        /** Be able to compute the Jacobian of the warp at a given coordinate pair. */
+        typename WarpTraits<WarpMode>::JacobianType jacobian(const cv::Point2f &p) const;
+        
+        // The following two methods are required when using AlignForwardAdditive and
+        // the default updateWarpForwardAdditive method.
+        
+        /** Be able to get parameters. */
+        typename WarpTraits<WarpMode>::ParamType getParameters() const;
+    
+        /** Be able to set parameters. */
+        void setParameters(const typename WarpTraits<WarpMode>::ParamType &p);
+        
+        // The following two methods are required when using AlignForwardComposition /
+        // AlignInverseCompositional and the default implementation of
+        // updateWarpForwardCompositional / updateWarpInverseCompositional method.
+        
+        /** Type to hold matrix representation of parameters. Note when using 
+            AlignInverseCompositional and the default updateWarpInverseCompositional,
+            this type needs to be invertible through .inv() */
+        typedef int MType;
+        
+        /** Be able to get matrix representation. */
+        MType getMatrix() const;
+        
+        /** Be able to set matrix representation. */
+        void setMatrix(const MType &m);
+
+    };
+    
+    /** 
+        Default warp traits implementation for compile time known parameter sizes.
+     */
+    template<int NParams>
+    struct WarpTraitsForCompileTimeKnownParameterCount {
+        enum {
+            NParameters = NParams
+        };
+        
+        /** Type to hold parameters of warp. */
+        typedef cv::Matx<float, NParameters, 1> ParamType;
+        
+        /** Type to hold Jacobian of warp. */
+        typedef cv::Matx<float, 2, NParameters> JacobianType;
+        
+        /** Type to hold Hessian matrix. */
+        typedef cv::Matx<float, NParameters, NParameters> HessianType;
+        
+        /** Type to hold the steepest descent image for a single pixel */
+        typedef cv::Matx<float, 1, NParameters> PixelSDIType;
+
+    };
+    
     /**
-        Base class for warps based on planar motions. 
+        Warp traits for translational motion.
+     */
+    template<>
+    struct WarpTraits<WARP_TRANSLATION> : WarpTraitsForCompileTimeKnownParameterCount<2> {};
+    
+    /**
+        Warp traits for Euclidean motion.
+     */
+    template<>
+    struct WarpTraits<WARP_EUCLIDEAN> : WarpTraitsForCompileTimeKnownParameterCount<3> {};
+    
+    /**
+        Warp traits for Similarity motion.
+     */
+    template<>
+    struct WarpTraits<WARP_SIMILARITY> : WarpTraitsForCompileTimeKnownParameterCount<4> {};
+
+    /**
+        Base class for warps based on planar motions.
      
         Planar motions in 2D can be well described by a 3x3 matrix, which is
         what this class does. It can thus provide a (not always) efficient warp
         method for image coordinates.
-    */
+     */
     template<int WarpMode>
     class PlanarWarp {
     public:
@@ -90,7 +200,7 @@ namespace imagealign {
             
             cv::Point3f x(p.x, p.y, 1.f);
             x = _m * x;
-
+            
             // Compile time if to speed up matrix calculation.
             // Todo: Consider Affine matrix to be represented by 2x3
             if (WarpMode < WARP_PERSPECTIVE) {
@@ -100,61 +210,10 @@ namespace imagealign {
             }
             
         }
-
+        
     protected:
         MType _m;
     };
-    
-    /** 
-        Interface declaration for warps.
-    */
-    template<int WarpMode>
-    class Warp;
-    
-    template<int WarpMode>
-    struct WarpTraits;
-    
-    /** 
-        Default warp traits implementation for compile time known parameter sizes.
-     */
-    template<int NParams>
-    struct WarpTraitsForDoF {
-        enum {
-            NParameters = NParams
-        };
-        
-        /** Type to hold parameters of warp. */
-        typedef cv::Matx<float, NParameters, 1> ParamType;
-        
-        /** Type to hold Jacobian of warp. */
-        typedef cv::Matx<float, 2, NParameters> JacobianType;
-        
-        /** Type to hold Hessian matrix. */
-        typedef cv::Matx<float, NParameters, NParameters> HessianType;
-        
-        /** Type to hold the steepest descent image for a single pixel */
-        typedef cv::Matx<float, 1, NParameters> PixelSDIType;
-
-    };
-    
-    /**
-        Warp traits for translational motion.
-     */
-    template<>
-    struct WarpTraits<WARP_TRANSLATION> : WarpTraitsForDoF<2> {};
-    
-    /**
-     Warp traits for Euclidean motion.
-     */
-    template<>
-    struct WarpTraits<WARP_EUCLIDEAN> : WarpTraitsForDoF<3> {};
-    
-    /**
-     Warp traits for Similarity motion.
-     */
-    template<>
-    struct WarpTraits<WARP_SIMILARITY> : WarpTraitsForDoF<4> {};
-
     
     /** 
         Warp implementation for pure translational motion.
