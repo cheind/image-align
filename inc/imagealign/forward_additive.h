@@ -21,6 +21,8 @@
 #define IMAGE_ALIGN_FORWARD_ADDITIVE_H
 
 #include <imagealign/align_base.h>
+#include <imagealign/warp.h>
+#include <imagealign/warp_update.h>
 #include <imagealign/sampling.h>
 #include <imagealign/gradient.h>
 #include <opencv2/core/core.hpp>
@@ -131,7 +133,7 @@ namespace imagealign {
             ParamType delta = hessian.inv() * b;
             
             // 9. Additive update of warp parameters.
-            w.setParameters(w.getParameters() + delta);
+            updateWarpForwardAdditive(w, delta);
             
             this->setLastError(sumErrors / tpl.size().area());
             this->setLastIncrement(delta);

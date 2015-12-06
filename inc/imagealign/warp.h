@@ -42,14 +42,15 @@ namespace imagealign {
             Foundations and Trends in Computer Graphics and Vision 2.1 (2006): 1-104.
      
     */
-    enum EWarpMode {
-        /** 2D translational motion. 2 DoF */
-        WARP_TRANSLATION,
-        /** 2D Euclidean motion. 3 DoF */
-        WARP_EUCLIDEAN,
-        /** 2D Similarity motion. 4 DoF */
-        WARP_SIMILARITY
-    };
+    
+    /** 2D translational motion. See Warp<WARP_TRANSLATION>. */
+    const int WARP_TRANSLATION = 0;
+    
+    /** 2D Euclidean motion. See Warp<WARP_EUCLIDEAN>. */
+    const int WARP_EUCLIDEAN = 1;
+    
+    /** 2D Similarity motion. See Warp<WARP_SIMILARITY>. */
+    const int WARP_SIMILARITY = 2;
     
     
     /** 
@@ -91,6 +92,9 @@ namespace imagealign {
         MType _m;
     };
     
+    /** 
+        Interface declaration for warps.
+    */
     template<int WarpMode>
     class Warp;
     
