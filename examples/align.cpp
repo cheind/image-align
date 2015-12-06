@@ -75,8 +75,8 @@ void perturbateWarp(ia::Warp<ia::WARP_SIMILARITY> &w) {
     // Note parameters are tx, ty, a and b. So we rather use the canoncial form
     ia::WarpTraits<ia::WARP_SIMILARITY>::ParamType params = w.getParametersInCanonicalRepresentation();
     
-    params(0,0) += cv::theRNG().gaussian(5.f);
-    params(1,0) += cv::theRNG().gaussian(5.f);
+    params(0,0) += cv::theRNG().gaussian(3.f);
+    params(1,0) += cv::theRNG().gaussian(3.f);
     params(2,0) += cv::theRNG().gaussian(0.2f);
     params(3,0) += cv::theRNG().gaussian(0.05f);
     
@@ -100,14 +100,16 @@ void drawRectOfTemplate(cv::Mat &img, const ia::Warp<WarpType> &w, cv::Size tplS
 int main(int argc, char **argv)
 {
     typedef ia::Warp<ia::WARP_SIMILARITY> WarpType;
-    typedef ia::AlignForwardCompositional<ia::WARP_SIMILARITY> AlignType;
+    typedef ia::AlignInverseCompositional<ia::WARP_SIMILARITY> AlignType;
     
-    cv::theRNG().state = cv::getTickCount();
+    //cv::theRNG().state = cv::getTickCount();
     
     // Random target image
     cv::Mat target;
     
     if (argc == 1) {
+        std::cout << "Generating random image..." << std::endl
+                  << "Use " << argv[0] << " <image> to start with a pre-defined image." << std::endl;
         target.create(480, 640, CV_8UC1);
         cv::randu(target, cv::Scalar::all(0), cv::Scalar::all(255));
         cv::blur(target, target, cv::Size(5,5));
@@ -143,7 +145,9 @@ int main(int argc, char **argv)
         AlignType at;
         at.prepare(tpl, target, levels);
         
-        int iterationsPerLevel[] = {10, 10, 5};
+        int iterationsPerLevel[] = {30, 30, 15};
+        
+        int64 e1 = cv::getTickCount();
         
         for (int i = 0; i < levels; ++i) {
             int iter = 0;
@@ -156,7 +160,9 @@ int main(int argc, char **argv)
             
         }
         
-        std::cout << "Completed after " << at.iteration() << " iterations. Last error: " << at.lastError() << std::endl;
+        double elapsed = (cv::getTickCount() - e1) / cv::getTickFrequency();
+        
+        std::cout << "Completed after " << at.iteration() << " iterations. Last error: " << at.lastError() << " .Took " << elapsed << " seconds." << std::endl;
         
         
         cv::Mat display;

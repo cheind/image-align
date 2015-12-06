@@ -23,5 +23,6 @@
 #include <imagealign/warp.h>
 #include <imagealign/forward_additive.h>
 #include <imagealign/forward_compositional.h>
+#include <imagealign/inverse_compositional.h>
 
 #endif

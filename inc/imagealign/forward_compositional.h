@@ -24,7 +24,6 @@
 #include <imagealign/bilinear.h>
 #include <imagealign/gradient.h>
 #include <opencv2/core/core.hpp>
-#include <iostream>
 
 namespace imagealign {
     
@@ -81,7 +80,6 @@ namespace imagealign {
          */
         void prepareImpl()
         {
-            std::cout << "in prepare" << std::endl;
             Warp<WarpMode> w;
             w.setIdentity();
             

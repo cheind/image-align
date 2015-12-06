@@ -20,6 +20,7 @@ add_library(ialign
     inc/imagealign/align_base.h
     inc/imagealign/forward_additive.h
     inc/imagealign/forward_compositional.h
+    inc/imagealign/inverse_compositional.h
     src/unused.cpp
 )
 	

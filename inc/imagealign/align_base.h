@@ -201,6 +201,13 @@ namespace imagealign {
             return _level;
         }
         
+        /** 
+            Return the total number of levels.
+         */
+        int numLevels() const {
+            return _levels;
+        }
+        
         /**
             Access the error value from last iteration.
          
