@@ -20,7 +20,7 @@
 #ifndef IMAGE_ALIGN_WARP_H
 #define IMAGE_ALIGN_WARP_H
 
-#include <imagealign/bilinear.h>
+#include <imagealign/sampling.h>
 #include <opencv2/core/core.hpp>
 
 namespace imagealign {
@@ -388,8 +388,8 @@ namespace imagealign {
         \param scaleDown Optional scale down factor. Used with different levels of hierarchy
         \param w Warp function
      */
-    template<class ChannelType, int WarpType>
-    void warpImage(cv::InputArray src_, cv::OutputArray dst_, cv::Size dstSize, const Warp<WarpType> &w, float scaleUp = 1.f, float scaleDown = 1.f)
+    template<class ChannelType, int SampleMethod, int WarpType>
+    void warpImage(cv::InputArray src_, cv::OutputArray dst_, cv::Size dstSize, const Warp<WarpType> &w, const Sampler<SampleMethod> &s = Sampler<SampleMethod>(),float scaleUp = 1.f, float scaleDown = 1.f)
     {
         CV_Assert(src_.channels() == 1);
         
@@ -403,7 +403,7 @@ namespace imagealign {
             
             for (int x = 0; x < dstSize.width; ++x) {
                 cv::Point2f wp = w(cv::Point2f(x + 0.5f, y + 0.5f) * scaleUp) * scaleDown;
-                r[x] = bilinear<ChannelType>(src, wp);
+                r[x] = s.template sample<ChannelType>(src, wp);
             }
         }
     }

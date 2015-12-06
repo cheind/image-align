@@ -21,7 +21,7 @@
 #define IMAGE_ALIGN_FORWARD_COMPOSITIONAL_H
 
 #include <imagealign/align_base.h>
-#include <imagealign/bilinear.h>
+#include <imagealign/sampling.h>
 #include <imagealign/gradient.h>
 #include <opencv2/core/core.hpp>
 
@@ -120,9 +120,10 @@ namespace imagealign {
             // warping the entire target image explicitely here.
             warpImage<float>(target, _warpedTargetImage, tpl.size(), w, this->scaleUpFactor(), this->scaleDownFactor());
             
-            
             HessianType hessian = HessianType::zeros();
             ParamType b = ParamType::zeros();
+            
+            Sampler<SAMPLE_NEAREST> s;
 
             float sumErrors = 0.f;
             
@@ -137,14 +138,14 @@ namespace imagealign {
                     const float templateIntensity = tplRow[x];
                     
                     // 1. Lookup the target intensity using the already back warped image.
-                    const float targetIntensity = bilinear<float>(_warpedTargetImage, ptpl);
+                    const float targetIntensity = s.sample(_warpedTargetImage, ptpl);
                     
                     // 2. Compute the error
                     const float err = templateIntensity - targetIntensity;
                     sumErrors += err * err;
                     
                     // 3. Compute the target gradient on the warped image
-                    const cv::Matx<float, 1, 2> grad = gradient<float>(_warpedTargetImage, ptpl);
+                    const cv::Matx<float, 1, 2> grad = gradient<float, SAMPLE_NEAREST>(_warpedTargetImage, ptpl);
                     
                     // 4. Lookup the prec-computed Jacobian for the template pixel position corresponding to finest level.
                     const JacobianType &jacobian = _jacobians[idxRowOrig + x * pixelScaleUp];

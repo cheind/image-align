@@ -142,7 +142,7 @@ int main(int argc, char **argv)
         WarpType targetW = w;
         
         // Generate template image from target
-        ia::warpImage<uchar>(target, tpl, tpl.size(), w);
+        ia::warpImage<uchar, ia::SAMPLE_BILINEAR>(target, tpl, tpl.size(), w);
         
         // Perturbate warp
         perturbateWarp(w);
@@ -184,7 +184,7 @@ int main(int argc, char **argv)
         for (size_t i = 0; i < incrementals.size(); ++i) {
             
             cv::Mat warped;
-            ia::warpImage<uchar>(target, warped, tpl.size(), incrementals[i]);
+            ia::warpImage<uchar, ia::SAMPLE_BILINEAR>(target, warped, tpl.size(), incrementals[i]);
             cv::imshow("Warped", warped);
             
             cv::Mat dispClone = display.clone();

@@ -21,7 +21,7 @@
 #define IMAGE_ALIGN_INVERSE_COMPOSITIONAL_H
 
 #include <imagealign/align_base.h>
-#include <imagealign/bilinear.h>
+#include <imagealign/sampling.h>
 #include <imagealign/gradient.h>
 #include <opencv2/core/core.hpp>
 
@@ -104,7 +104,7 @@ namespace imagealign {
                         cv::Point2f p(x + 0.5f, y + 0.5f);
                         
                         // 1. Compute the gradient of the template
-                        const cv::Matx<float, 1, 2> grad = gradient<float>(tpl, p);
+                        const cv::Matx<float, 1, 2> grad = gradient<float, SAMPLE_NEAREST>(tpl, p);
                         
                         // 2. Evaluate the Jacobian of image location.
                         // Note: Jacobians are computed with pixel positions corresponding
@@ -144,6 +144,8 @@ namespace imagealign {
             typedef typename WarpTraits<WarpMode>::ParamType ParamType;
             
             ParamType b = ParamType::zeros();
+            
+            Sampler<SAMPLE_BILINEAR> s;
 
             float sumErrors = 0.f;
             int idx = 0;
@@ -157,7 +159,7 @@ namespace imagealign {
                     
                     // 1. Warp target pixel back to template using w
                     cv::Point2f ptgt = this->scaleDown(w(this->scaleUp(ptpl)));
-                    const float targetIntensity = bilinear<float>(target, ptgt);
+                    const float targetIntensity = s.sample<float>(target, ptgt);
                     
                     // 2. Compute the error. Roles reverse compared to forward additive / compositional
                     const float err = targetIntensity - templateIntensity;

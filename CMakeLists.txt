@@ -15,7 +15,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR} ${OpenCV_INCLUDE_DIRS} "inc")
 add_library(ialign
     inc/imagealign/imagealign.h
     inc/imagealign/gradient.h
-    inc/imagealign/bilinear.h
+    inc/imagealign/sampling.h
     inc/imagealign/warp.h
     inc/imagealign/align_base.h
     inc/imagealign/forward_additive.h
@@ -36,7 +36,7 @@ target_link_libraries(example_align ialign ${OpenCV_LIBRARIES})
 add_executable(tests
     tests/catch.hpp
     tests/warp.cpp
-    tests/bilinear.cpp
+    tests/sampling.cpp
     tests/forward_additive.cpp
 )
 target_link_libraries(tests ialign ${OpenCV_LIBRARIES})

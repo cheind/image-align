@@ -70,7 +70,7 @@ TEST_CASE("forward-additive-euclidean")
     WarpType w;
     w.setParameters(real);
     
-    ia::warpImage<uchar>(target, tmpl, tmpl.size(), w);
+    ia::warpImage<uchar, ia::SAMPLE_BILINEAR>(target, tmpl, tmpl.size(), w);
     
     // Perturbate warp
     Traits::ParamType r(cv::theRNG().gaussian(2.f),
@@ -112,7 +112,7 @@ TEST_CASE("forward-additive-similarity")
     
     Traits::ParamType realp = w.getParameters();
     
-    ia::warpImage<uchar>(target, tmpl, tmpl.size(), w);
+    ia::warpImage<uchar, ia::SAMPLE_BILINEAR>(target, tmpl, tmpl.size(), w);
     
     // Perturbate warp
     Traits::ParamType r;

@@ -21,7 +21,7 @@
 #define IMAGE_ALIGN_FORWARD_ADDITIVE_H
 
 #include <imagealign/align_base.h>
-#include <imagealign/bilinear.h>
+#include <imagealign/sampling.h>
 #include <imagealign/gradient.h>
 #include <opencv2/core/core.hpp>
 
@@ -85,6 +85,8 @@ namespace imagealign {
             typedef typename WarpTraits<WarpMode>::PixelSDIType PixelSDIType;
             typedef typename WarpTraits<WarpMode>::ParamType ParamType;
             
+            Sampler<SAMPLE_BILINEAR> s;
+            
             HessianType hessian = HessianType::zeros();
             ParamType b = ParamType::zeros();
 
@@ -102,14 +104,14 @@ namespace imagealign {
                     
                     // 1. Warp target pixel back to template using w
                     cv::Point2f ptgt = this->scaleDown(w(ptplOrig));
-                    const float targetIntensity = bilinear<float>(target, ptgt);
+                    const float targetIntensity = s.sample<float>(target, ptgt);
                     
                     // 2. Compute the error
                     const float err = templateIntensity - targetIntensity;
                     sumErrors += err * err;
                     
                     // 3. Compute the target gradient warped back
-                    const cv::Matx<float, 1, 2> grad = gradient<float>(target, ptgt);
+                    const cv::Matx<float, 1, 2> grad = gradient<float, SAMPLE_BILINEAR>(target, ptgt);
                     
                     // 4. Compute the jacobian for the template pixel position
                     JacobianType jacobian = w.jacobian(ptplOrig);
