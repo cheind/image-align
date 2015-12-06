@@ -24,7 +24,6 @@
 #include <imagealign/bilinear.h>
 #include <imagealign/gradient.h>
 #include <opencv2/core/core.hpp>
-#include <iostream>
 
 namespace imagealign {
     

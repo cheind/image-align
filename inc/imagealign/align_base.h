@@ -277,6 +277,15 @@ namespace imagealign {
             return x * _scaleFactorFromOriginal;
         }
         
+        float scaleUpFactor() const {
+            return _scaleFactorToOriginal;
+        }
+        
+        float scaleDownFactor() const {
+            return _scaleFactorFromOriginal;
+        }
+
+        
     private:
         
         std::vector<cv::Mat> _templatePyramid;

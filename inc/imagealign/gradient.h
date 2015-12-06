@@ -39,6 +39,7 @@ namespace imagealign {
             (bilinear<ChannelType>(img, p.x, p.y + 1.f) - bilinear<ChannelType>(img, p.x, p.y - 1.f)) * 0.5f
         );
     }
+    
 }
 
 #endif

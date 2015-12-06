@@ -50,7 +50,10 @@ If the build should fail for a specific platform, don't hesitate to create an is
 # References
 
  1. <a name="Lucas81"></a>Lucas, Bruce D., and Takeo Kanade. "An iterative image registration technique with an application to stereo vision." IJCAI. Vol. 81. 1981.
- 2. 
+ 2. <a name="Baker01"></a>Baker, Simon, and Iain Matthews. "Equivalence and efficiency of image alignment algorithms." Computer Vision and Pattern Recognition, 2001. CVPR 2001. Proceedings of the 2001 IEEE Computer Society Conference on. Vol. 1. IEEE, 2001.
+ 3. <a name="Baker02"></a>Baker, Simon, and Iain Matthews. Lucas-Kanade 20 years on: A unifying framework: Part 1. Technical Report CMU-RI-TR-02-16, Carnegie Mellon University Robotics Institute, 2002.
+ 4. <a name="Baker03"></a>Baker, Simon, and Iain Matthews. Lucas-Kanade 20 years on: A unifying framework: Part 2. Technical Report CMU-RI-TR-03-01, Carnegie Mellon University Robotics Institute, 2003.
+ 4. <a name="Baker04"></a>Baker, Simon, et al. "Lucas-Kanade 20 years on: A unifying framework: Part 3." The Robotics Institute, Carnegie Mellon University (2003).
 
 # License
 ```

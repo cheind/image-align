@@ -19,6 +19,7 @@ add_library(ialign
     inc/imagealign/warp.h
     inc/imagealign/align_base.h
     inc/imagealign/forward_additive.h
+    inc/imagealign/forward_compositional.h
     src/unused.cpp
 )
 	

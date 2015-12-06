@@ -384,10 +384,12 @@ namespace imagealign {
         \param src_ Source image
         \param dst_ Destination image
         \param dstSize Size of destination image
+        \param scaleUp Optional scale up factor. Used with different levels of hierarchy
+        \param scaleDown Optional scale down factor. Used with different levels of hierarchy
         \param w Warp function
      */
     template<class ChannelType, int WarpType>
-    void warpImage(cv::InputArray src_, cv::OutputArray dst_, cv::Size dstSize, const Warp<WarpType> &w)
+    void warpImage(cv::InputArray src_, cv::OutputArray dst_, cv::Size dstSize, const Warp<WarpType> &w, float scaleUp = 1.f, float scaleDown = 1.f)
     {
         CV_Assert(src_.channels() == 1);
         
@@ -400,7 +402,7 @@ namespace imagealign {
             ChannelType *r = dst.ptr<ChannelType>(y);
             
             for (int x = 0; x < dstSize.width; ++x) {
-                cv::Point2f wp = w(cv::Point2f(x + 0.5f, y + 0.5f));
+                cv::Point2f wp = w(cv::Point2f(x + 0.5f, y + 0.5f) * scaleUp) * scaleDown;
                 r[x] = bilinear<ChannelType>(src, wp);
             }
         }

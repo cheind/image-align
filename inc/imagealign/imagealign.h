@@ -22,5 +22,6 @@
 
 #include <imagealign/warp.h>
 #include <imagealign/forward_additive.h>
+#include <imagealign/forward_compositional.h>
 
 #endif
