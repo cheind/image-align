@@ -51,17 +51,22 @@ namespace imagealign {
     /** 2D Similarity motion. See Warp<WARP_SIMILARITY>. */
     const int WARP_SIMILARITY = 2;
     
+    /** 2D Affine motion. See Warp<WARP_AFFINE>. */
+    const int WARP_AFFINE = 3;
     
-    /** 
+    /** 2D Perspective motion. See Warp<WARP_PERSPECTIVE>. */
+    const int WARP_PERSPECTIVE = 4;
+    
+    /**
         Base class for warps based on planar motions. 
      
         Planar motions in 2D can be well described by a 3x3 matrix, which is
         what this class does. It can thus provide a (not always) efficient warp
         method for image coordinates.
     */
+    template<int WarpMode>
     class PlanarWarp {
     public:
-        
         typedef cv::Matx<float, 3, 3> MType;
         
         inline PlanarWarp() {
@@ -82,9 +87,18 @@ namespace imagealign {
         
         /** Warp point */
         inline cv::Point2f operator()(const cv::Point2f &p) const {
+            
             cv::Point3f x(p.x, p.y, 1.f);
             x = _m * x;
-            return cv::Point2f(x.x / x.z, x.y / x.z);
+
+            // Compile time if to speed up matrix calculation.
+            // Todo: Consider Affine matrix to be represented by 2x3
+            if (WarpMode < WARP_PERSPECTIVE) {
+                return cv::Point2f(x.x, x.y);
+            } else {
+                return cv::Point2f(x.x / x.z, x.y / x.z);
+            }
+            
         }
 
     protected:
@@ -155,7 +169,7 @@ namespace imagealign {
 
     */
     template<>
-    class Warp<WARP_TRANSLATION> : public PlanarWarp {
+    class Warp<WARP_TRANSLATION> : public PlanarWarp<WARP_TRANSLATION> {
     public:
         typedef typename WarpTraits<WARP_TRANSLATION>::ParamType ParamType;
         typedef typename WarpTraits<WARP_TRANSLATION>::JacobianType JacobianType;
@@ -205,7 +219,7 @@ namespace imagealign {
             s = sin(theta)
      */
     template<>
-    class Warp<WARP_EUCLIDEAN> : public PlanarWarp {
+    class Warp<WARP_EUCLIDEAN> : public PlanarWarp<WARP_EUCLIDEAN> {
     public:
         
         typedef typename WarpTraits<WARP_EUCLIDEAN>::ParamType ParamType;
@@ -282,7 +296,7 @@ namespace imagealign {
         Also note that in this parametrization a and b are not independent parameters.
      */
     template<>
-    class Warp<WARP_SIMILARITY> : public PlanarWarp {
+    class Warp<WARP_SIMILARITY> : public PlanarWarp<WARP_SIMILARITY> {
     public:
         
         typedef typename WarpTraits<WARP_SIMILARITY>::ParamType ParamType;
