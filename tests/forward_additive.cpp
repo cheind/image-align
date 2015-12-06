@@ -104,10 +104,8 @@ TEST_CASE("forward-additive-similarity")
     
     cv::Mat tmpl = cv::Mat(20, 20, CV_8UC1);
     
-    Traits::ParamType real(cv::theRNG().uniform(20.f, 40.f),
-                           cv::theRNG().uniform(20.f, 40.f),
-                           cv::theRNG().uniform(0.17f, 0.78f),
-                           cv::theRNG().uniform(1.0f, 2.f));
+    Traits::ParamType real;
+    real << 29.110104f, 20.72f, 0.66f, 1.094f;
     
     WarpType w;
     w.setParametersInCanonicalRepresentation(real);
@@ -117,16 +115,14 @@ TEST_CASE("forward-additive-similarity")
     ia::warpImage<uchar>(target, tmpl, tmpl.size(), w);
     
     // Perturbate warp
-    Traits::ParamType r(cv::theRNG().gaussian(2.f),
-                        cv::theRNG().gaussian(2.f),
-                        cv::theRNG().gaussian(0.5f),
-                        cv::theRNG().gaussian(0.1f));
+    Traits::ParamType r;
+    r << 0.74045879f, 0.92933869f, -0.21553245f, 0.16472194f;
     
     w.setParametersInCanonicalRepresentation(real + r);
     
     AlignType al;
-    al.prepare(tmpl, target, 1);
-    al.align(w, 100, 0.001f);
+    al.prepare(tmpl, target, 2);
+    al.align(w, (const int[]){50, 50});
     
     REQUIRE(al.iteration() < 100);
     REQUIRE(w.getParameters()(0,0) == Catch::Detail::Approx(realp(0,0)).epsilon(0.01));
