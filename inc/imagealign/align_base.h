@@ -101,16 +101,23 @@ namespace imagealign {
             them by minimizing the energy function of the derived class. All iterations 
             are performed on the same level.
          
+            The method stops when 
+                - the number of iterations is reached or
+                - the norm of the last increment falls below eps.
+         
             \param w Current state of warp estimation. Will be modified to hold result.
             \param maxIterations Stops after maxIterations have been performed.
-            \param eps Stops when the norm of the incremental parameter update is below this value.
+            \param eps Minimum norm of last increment.
          */
         SelfType &align(Warp<WarpMode> &w, int maxIterations, float eps)
         {
-            for (int i  = 0; i < maxIterations; ++i) {
+            
+            align(w);
+            int iter = 0;
+            while (++iter <= maxIterations &&
+                   cv::norm(lastIncrement()) >= eps)
+            {
                 align(w);
-                if (cv::norm(lastIncrement()) < eps)
-                    break;
             }
             
             return *this;
