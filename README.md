@@ -68,7 +68,11 @@ int maxIterationsPerLevel[] = {30, 30, 15};
 a.align(w, iterationsPerLevel);
 ```
 
-When alignment has finished, ``w`` will hold the warp that best aligns the template image with the target image. Please note, Lucas-Kanade methods are locally operating methods that require a good guess of true warp parameters to converge. To provide a guess, simple adjust the parameters of ``w`` using methods such as ``w.setParameters()`` and similar before calling ``a.align()``.
+When alignment has finished, ``w`` will hold the warp that best aligns the template image with the target image. 
+
+Please note, Lucas-Kanade methods are locally operating methods that require a good guess of true warp parameters to converge. To provide a guess, simple adjust the parameters of ``w`` using methods such as ``w.setParameters()`` and similar before calling ``a.align()``.
+
+**Image Align** comes with a couple of examples that illustrate further usage. you can find these in the [examples directory](examples/). Additionally [these unit tests](tests/) might provide in-depth information.
 
 # Building from source
 **Image Alignment** requires the following pre-requisites
