@@ -230,8 +230,8 @@ namespace imagealign {
     template<>
     class Warp<WARP_TRANSLATION> : public PlanarWarp<WARP_TRANSLATION> {
     public:
-        typedef typename WarpTraits<WARP_TRANSLATION>::ParamType ParamType;
-        typedef typename WarpTraits<WARP_TRANSLATION>::JacobianType JacobianType;
+        typedef WarpTraits<WARP_TRANSLATION>::ParamType ParamType;
+        typedef WarpTraits<WARP_TRANSLATION>::JacobianType JacobianType;
 
         /** Get warp parameters */
         ParamType getParameters() const {
@@ -281,8 +281,8 @@ namespace imagealign {
     class Warp<WARP_EUCLIDEAN> : public PlanarWarp<WARP_EUCLIDEAN> {
     public:
         
-        typedef typename WarpTraits<WARP_EUCLIDEAN>::ParamType ParamType;
-        typedef typename WarpTraits<WARP_EUCLIDEAN>::JacobianType JacobianType;
+        typedef WarpTraits<WARP_EUCLIDEAN>::ParamType ParamType;
+        typedef WarpTraits<WARP_EUCLIDEAN>::JacobianType JacobianType;
         
         /** Get warp parameters */
         ParamType getParameters() const {
@@ -358,8 +358,8 @@ namespace imagealign {
     class Warp<WARP_SIMILARITY> : public PlanarWarp<WARP_SIMILARITY> {
     public:
         
-        typedef typename WarpTraits<WARP_SIMILARITY>::ParamType ParamType;
-        typedef typename WarpTraits<WARP_SIMILARITY>::JacobianType JacobianType;
+        typedef WarpTraits<WARP_SIMILARITY>::ParamType ParamType;
+        typedef WarpTraits<WARP_SIMILARITY>::JacobianType JacobianType;
         
         /** Get warp parameters */
         ParamType getParameters() const {

@@ -3,7 +3,8 @@ cmake_minimum_required(VERSION 2.8)
 project(image-alignment)
 
 if (WIN32)
-	#set(OpenCV_STATIC true)
+    set(OpenCV_STATIC OFF)
+	set(OpenCV_SHARED ON)
 	add_definitions("-D_SCL_SECURE_NO_WARNINGS -D_CRT_SECURE_NO_WARNINGS")
 endif()
 

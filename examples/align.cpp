@@ -34,8 +34,8 @@ void initializeWarp(cv::Size templateSize, cv::Size targetSize, ia::Warp<ia::WAR
 void perturbateWarp(ia::Warp<ia::WARP_TRANSLATION> &w) {
     
     ia::WarpTraits<ia::WARP_TRANSLATION>::ParamType params = w.getParameters();
-    params(0,0) += cv::theRNG().gaussian(8.f);
-    params(1,0) += cv::theRNG().gaussian(8.f);
+    params(0,0) += (float)cv::theRNG().gaussian(8.f);
+    params(1,0) += (float)cv::theRNG().gaussian(8.f);
     
     w.setParameters(params);
 }
@@ -52,9 +52,9 @@ void initializeWarp(cv::Size templateSize, cv::Size targetSize, ia::Warp<ia::WAR
 void perturbateWarp(ia::Warp<ia::WARP_EUCLIDEAN> &w) {
     
     ia::WarpTraits<ia::WARP_EUCLIDEAN>::ParamType params = w.getParameters();
-    params(0,0) += cv::theRNG().gaussian(8.f);
-    params(1,0) += cv::theRNG().gaussian(8.f);
-    params(2,0) += cv::theRNG().gaussian(0.2f);
+    params(0,0) += (float)cv::theRNG().gaussian(8.f);
+    params(1,0) += (float)cv::theRNG().gaussian(8.f);
+    params(2,0) += (float)cv::theRNG().gaussian(0.2f);
     
     w.setParameters(params);
 }
@@ -62,10 +62,10 @@ void perturbateWarp(ia::Warp<ia::WARP_EUCLIDEAN> &w) {
 void initializeWarp(cv::Size templateSize, cv::Size targetSize, ia::Warp<ia::WARP_SIMILARITY> &w) {
     ia::WarpTraits<ia::WARP_SIMILARITY>::ParamType params;
     
-    params(0,0) = cv::theRNG().uniform(0.f, (float)(targetSize.width - templateSize.width));
-    params(1,0) = cv::theRNG().uniform(0.f, (float)(targetSize.height - templateSize.height));
-    params(2,0) = cv::theRNG().uniform(0.f, 3.1415f * 0.5f);
-    params(3,0) = cv::theRNG().uniform(0.5f, 1.5f);
+    params(0,0) = (float)cv::theRNG().uniform(0.f, (float)(targetSize.width - templateSize.width));
+    params(1,0) = (float)cv::theRNG().uniform(0.f, (float)(targetSize.height - templateSize.height));
+    params(2,0) = (float)cv::theRNG().uniform(0.f, 3.1415f * 0.5f);
+    params(3,0) = (float)cv::theRNG().uniform(0.5f, 1.5f);
     
     w.setParametersInCanonicalRepresentation(params);
 }
@@ -75,10 +75,10 @@ void perturbateWarp(ia::Warp<ia::WARP_SIMILARITY> &w) {
     // Note parameters are tx, ty, a and b. So we rather use the canoncial form
     ia::WarpTraits<ia::WARP_SIMILARITY>::ParamType params = w.getParametersInCanonicalRepresentation();
     
-    params(0,0) += cv::theRNG().gaussian(3.f);
-    params(1,0) += cv::theRNG().gaussian(3.f);
-    params(2,0) += cv::theRNG().gaussian(0.2f);
-    params(3,0) += cv::theRNG().gaussian(0.05f);
+    params(0,0) += (float)cv::theRNG().gaussian(3.f);
+    params(1,0) += (float)cv::theRNG().gaussian(3.f);
+    params(2,0) += (float)cv::theRNG().gaussian(0.2f);
+    params(3,0) += (float)cv::theRNG().gaussian(0.05f);
     
     w.setParametersInCanonicalRepresentation(params);
 }

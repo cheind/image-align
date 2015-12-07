@@ -74,9 +74,9 @@ TEST_CASE("forward-additive-euclidean")
     ia::warpImage<uchar, ia::SAMPLE_BILINEAR>(target, tmpl, tmpl.size(), w);
     
     // Perturbate warp
-    Traits::ParamType r(cv::theRNG().gaussian(2.f),
-                        cv::theRNG().gaussian(2.f),
-                        cv::theRNG().gaussian(0.5f));
+    Traits::ParamType r((float)cv::theRNG().gaussian(2.f),
+                        (float)cv::theRNG().gaussian(2.f),
+                        (float)cv::theRNG().gaussian(0.5f));
     
     w.setParameters(real + r);
     
@@ -123,7 +123,8 @@ TEST_CASE("forward-additive-similarity")
     
     AlignType al;
     al.prepare(tmpl, target, 2);
-    al.align(w, (const int[]){50, 50});
+    const int iterations[] = { 50, 50 };
+    al.align(w, iterations);
     
     REQUIRE(al.iteration() < 100);
     REQUIRE(w.getParameters()(0,0) == Catch::Detail::Approx(realp(0,0)).epsilon(0.01));
