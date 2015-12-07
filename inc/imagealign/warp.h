@@ -186,6 +186,33 @@ namespace imagealign {
             _m = m;
         }
         
+        inline MType invMatrix() const {
+            if (WarpMode < WARP_PERSPECTIVE) {
+                // Faster variant for Affine matrices
+                cv::Matx<float, 2, 2> ir = _m.get_minor<2, 2>(0, 0).inv();
+                cv::Matx<float, 2, 1> ib = -ir * _m.get_minor<2, 1>(0, 2);
+                
+                MType result;
+                
+                result(0, 0) = ir(0, 0);
+                result(0, 1) = ir(0, 1);
+                result(0, 2) = ib(0, 0);
+                
+                result(1, 0) = ir(1, 0);
+                result(1, 1) = ir(1, 1);
+                result(1, 2) = ib(1, 0);
+                
+                result(2, 0) = 0.f;
+                result(2, 1) = 0.f;
+                result(2, 2) = 1.f;
+                
+                return result;
+                
+            } else {
+                return _m.inv();
+            }
+        }
+        
         /** Warp point */
         inline cv::Point2f operator()(const cv::Point2f &p) const {
             
@@ -270,7 +297,7 @@ namespace imagealign {
         void updateInverseCompositional(const ParamType &delta) {
             Warp<WARP_TRANSLATION> wDelta;
             wDelta.setParameters(delta);
-            setMatrix(matrix() * wDelta.matrix().inv());
+            setMatrix(matrix() * wDelta.invMatrix());
         }
     };
     
@@ -360,7 +387,7 @@ namespace imagealign {
         void updateInverseCompositional(const ParamType &delta) {
             Warp<WARP_EUCLIDEAN> wDelta;
             wDelta.setParameters(delta);
-            setMatrix(matrix() * wDelta.matrix().inv());
+            setMatrix(matrix() * wDelta.invMatrix());
         }
     };
     
@@ -489,9 +516,10 @@ namespace imagealign {
         
         /** Inverse compositional step. */
         void updateInverseCompositional(const ParamType &delta) {
+            
             Warp<WARP_SIMILARITY> wDelta;
             wDelta.setParameters(delta);
-            setMatrix(matrix() * wDelta.matrix().inv());
+            setMatrix(matrix() * wDelta.invMatrix());
         }
         
     };
