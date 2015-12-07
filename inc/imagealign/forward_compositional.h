@@ -23,7 +23,6 @@
 #include <imagealign/align_base.h>
 #include <imagealign/sampling.h>
 #include <imagealign/gradient.h>
-#include <imagealign/warp_update.h>
 #include <imagealign/warp_image.h>
 #include <opencv2/core/core.hpp>
 
@@ -167,7 +166,7 @@ namespace imagealign {
             ParamType delta = hessian.inv() * b;
             
             // 9. Compositional update of warp parameters.
-            updateWarpForwardCompositional(w, delta);
+            w.updateForwardCompositional(delta);
             
             this->setLastError(sumErrors / tpl.size().area());
             this->setLastIncrement(delta);

@@ -106,29 +106,14 @@ namespace imagealign {
         /** Be able to compute the Jacobian of the warp at a given coordinate pair. */
         typename WarpTraits<WarpMode>::JacobianType jacobian(const cv::Point2f &p) const;
         
-        // The following two methods are required when using AlignForwardAdditive and
-        // the default updateWarpForwardAdditive method.
+        /** Be able to perform the forward additive step. Only when using AlignForwardAdditive. */
+        void updateForwardAdditive(const typename WarpTraits<WarpMode>::ParamType &delta);
         
-        /** Be able to get parameters. */
-        typename WarpTraits<WarpMode>::ParamType parameters() const;
-    
-        /** Be able to set parameters. */
-        void setParameters(const typename WarpTraits<WarpMode>::ParamType &p);
+        /** Be able to perform the forward compositional step. Only when using AlignForwardCompositional. */
+        void updateForwardCompositional(const typename WarpTraits<WarpMode>::ParamType &delta);
         
-        // The following two methods are required when using AlignForwardComposition /
-        // AlignInverseCompositional and the default implementation of
-        // updateWarpForwardCompositional / updateWarpInverseCompositional method.
-        
-        /** Type to hold matrix representation of parameters. Note when using 
-            AlignInverseCompositional and the default updateWarpInverseCompositional,
-            this type needs to be invertible through .inv() */
-        typedef int MType;
-        
-        /** Be able to get matrix representation. */
-        MType matrix() const;
-        
-        /** Be able to set matrix representation. */
-        void setMatrix(const MType &m);
+        /** Be able to perform the inverse compositional step. Only when using AlignInverseCompositional. */
+        void updateInverseCompositional(const typename WarpTraits<WarpMode>::ParamType &delta);
 
     };
     
@@ -250,7 +235,8 @@ namespace imagealign {
             _m(1, 2) = p(1, 0);
         }
         
-        /** Compute the jacobian of the warp.
+        /**
+            Compute the jacobian of the warp.
             
             The Jacobian matrix contains the partial derivatives of the warp parameters
             with respect to x and y coordinates, evaluated at the given pixel position.
@@ -266,6 +252,25 @@ namespace imagealign {
             j(0, 0) = 1.f;
             j(1, 1) = 1.f;
             return j;
+        }
+        
+        /** Forward additive step. */
+        void updateForwardAdditive(const ParamType &delta) {
+            setParameters(parameters() + delta);
+        }
+        
+        /** Forward compositional step. */
+        void updateForwardCompositional(const ParamType &delta) {
+            Warp<WARP_TRANSLATION> wDelta;
+            wDelta.setParameters(delta);
+            setMatrix(matrix() * wDelta.matrix());
+        }
+        
+        /** Inverse compositional step. */
+        void updateInverseCompositional(const ParamType &delta) {
+            Warp<WARP_TRANSLATION> wDelta;
+            wDelta.setParameters(delta);
+            setMatrix(matrix() * wDelta.matrix().inv());
         }
     };
     
@@ -337,6 +342,25 @@ namespace imagealign {
             j(1, 2) = c * p.x - s * p.y;
             
             return j;
+        }
+        
+        /** Forward additive step. */
+        void updateForwardAdditive(const ParamType &delta) {
+            setParameters(parameters() + delta);
+        }
+        
+        /** Forward compositional step. */
+        void updateForwardCompositional(const ParamType &delta) {
+            Warp<WARP_EUCLIDEAN> wDelta;
+            wDelta.setParameters(delta);
+            setMatrix(matrix() * wDelta.matrix());
+        }
+        
+        /** Inverse compositional step. */
+        void updateInverseCompositional(const ParamType &delta) {
+            Warp<WARP_EUCLIDEAN> wDelta;
+            wDelta.setParameters(delta);
+            setMatrix(matrix() * wDelta.matrix().inv());
         }
     };
     
@@ -449,6 +473,25 @@ namespace imagealign {
             j(1, 3) = p.x;
             
             return j;
+        }
+        
+        /** Forward additive step. */
+        void updateForwardAdditive(const ParamType &delta) {
+            setParameters(parameters() + delta);
+        }
+        
+        /** Forward compositional step. */
+        void updateForwardCompositional(const ParamType &delta) {
+            Warp<WARP_SIMILARITY> wDelta;
+            wDelta.setParameters(delta);
+            setMatrix(matrix() * wDelta.matrix());
+        }
+        
+        /** Inverse compositional step. */
+        void updateInverseCompositional(const ParamType &delta) {
+            Warp<WARP_SIMILARITY> wDelta;
+            wDelta.setParameters(delta);
+            setMatrix(matrix() * wDelta.matrix().inv());
         }
         
     };

@@ -160,27 +160,29 @@ int main(int argc, char **argv)
         at.prepare(tpl, target, levels);
         
         int iterationsPerLevel[] = {30, 30, 15};
+        int iterationsPerformed[] = {0, 0, 0};
         
         int64 e1 = cv::getTickCount();
         
         for (int i = 0; i < levels; ++i) {
-            int iter = 0;
             at.setLevel(i);
             
-            while (iter < iterationsPerLevel[i] &&
+            while (iterationsPerformed[i] < iterationsPerLevel[i] &&
                    at.errorChange() > 0.f &&
-                   (iter == 0 || cv::norm(at.lastIncrement()) > 0.001f))
+                   (iterationsPerformed[i] == 0 || cv::norm(at.lastIncrement()) > 0.01f))
             {
                 at.align(w);
                 incrementals.push_back(w);
-                ++iter;
+                ++iterationsPerformed[i];
             }
             
         }
         
         double elapsed = (cv::getTickCount() - e1) / cv::getTickFrequency();
         
-        std::cout << "Completed after " << at.iteration() << " iterations. Last error: " << at.lastError() << " .Took " << elapsed << " seconds." << std::endl;
+        std::cout << "Completed after [" << iterationsPerformed[0] << "," << iterationsPerformed[1] << "," << iterationsPerformed[2] << "] iterations. "
+                  << "Last error: " << at.lastError() << " "
+                  << "Took " << elapsed << " seconds." << std::endl;
         
         
         cv::Mat display;

@@ -19,7 +19,6 @@ add_library(ialign
     inc/imagealign/gradient.h
     inc/imagealign/sampling.h
     inc/imagealign/warp.h
-    inc/imagealign/warp_update.h
     inc/imagealign/warp_image.h
     inc/imagealign/align_base.h
     inc/imagealign/forward_additive.h

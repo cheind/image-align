@@ -87,9 +87,8 @@ namespace imagealign {
             target.getMat().convertTo(_targetPyramid[0], CV_32F);
             
             for (int i = 1; i < pyramidLevels; ++i) {
-                // Rewrite this using a warp.
-                cv::resize(_templatePyramid[i-1], _templatePyramid[i], cv::Size(0,0), 0.5, 0.5, CV_INTER_LINEAR);
-                cv::resize(_targetPyramid[i-1], _targetPyramid[i], cv::Size(0,0), 0.5, 0.5, CV_INTER_LINEAR);
+                cv::pyrDown(_templatePyramid[i-1], _templatePyramid[i]);
+                cv::pyrDown(_targetPyramid[i-1], _targetPyramid[i]);
             }
             
             // Convention is to have coarsest level at front

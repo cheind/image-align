@@ -23,7 +23,6 @@
 #include <imagealign/align_base.h>
 #include <imagealign/sampling.h>
 #include <imagealign/gradient.h>
-#include <imagealign/warp_update.h>
 #include <opencv2/core/core.hpp>
 
 namespace imagealign {
@@ -91,7 +90,7 @@ namespace imagealign {
             _invHessians.resize(this->numLevels());
             
             for (int i = 0; i < this->numLevels(); ++i) {
-                float s = this->scaleUpFactor();
+                float scale = this->scaleUpFactor();
                 
                 cv::Mat tpl = this->templateImagePyramid()[i];
                 
@@ -110,7 +109,7 @@ namespace imagealign {
                         // 2. Evaluate the Jacobian of image location.
                         // Note: Jacobians are computed with pixel positions corresponding
                         // to the finest pyramid level.
-                        JacobianType jacobian = w.jacobian(p * s);
+                        JacobianType jacobian = w.jacobian(p * scale);
                         
                         // 3. Compute steepest descent images
                         PixelSDIType sdi = grad * jacobian;
@@ -175,7 +174,7 @@ namespace imagealign {
             ParamType delta = _invHessians[this->level()] * b;
             
             // 5. Inverse compositional update of warp parameters.
-            updateWarpInverseCompositional(w, delta);
+            w.updateInverseCompositional(delta);
             
             this->setLastError(sumErrors / tpl.size().area());
             this->setLastIncrement(delta);
