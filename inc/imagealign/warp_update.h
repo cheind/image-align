@@ -36,7 +36,7 @@ namespace imagealign {
     template<int WarpMode>
     void updateWarpForwardAdditive(Warp<WarpMode> &w, const typename WarpTraits<WarpMode>::ParamType &delta)
     {
-        w.setParameters(w.getParameters() + delta);
+        w.setParameters(w.parameters() + delta);
     }
     
     /**
@@ -54,7 +54,7 @@ namespace imagealign {
         Warp<WarpMode> wDelta = w; // Copy is done here when w has dynamic number of parameters
         wDelta.setIdentity();
         wDelta.setParameters(delta);
-        w.setMatrix(w.getMatrix() * wDelta.getMatrix());
+        w.setMatrix(w.matrix() * wDelta.matrix());
     }
     
     /**
@@ -72,7 +72,7 @@ namespace imagealign {
         Warp<WarpMode> wDelta = w; // Copy is done here when w has dynamic number of parameters
         wDelta.setIdentity();
         wDelta.setParameters(delta);
-        w.setMatrix(w.getMatrix() * wDelta.getMatrix().inv());
+        w.setMatrix(w.matrix() * wDelta.matrix().inv());
     }
     
 }

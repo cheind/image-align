@@ -104,7 +104,7 @@ namespace imagealign {
         // the default updateWarpForwardAdditive method.
         
         /** Be able to get parameters. */
-        typename WarpTraits<WarpMode>::ParamType getParameters() const;
+        typename WarpTraits<WarpMode>::ParamType parameters() const;
     
         /** Be able to set parameters. */
         void setParameters(const typename WarpTraits<WarpMode>::ParamType &p);
@@ -119,7 +119,7 @@ namespace imagealign {
         typedef int MType;
         
         /** Be able to get matrix representation. */
-        MType getMatrix() const;
+        MType matrix() const;
         
         /** Be able to set matrix representation. */
         void setMatrix(const MType &m);
@@ -187,7 +187,7 @@ namespace imagealign {
             _m = MType::eye();
         }
         
-        inline MType getMatrix() const {
+        inline MType matrix() const {
             return _m;
         }
         
@@ -234,7 +234,7 @@ namespace imagealign {
         typedef WarpTraits<WARP_TRANSLATION>::JacobianType JacobianType;
 
         /** Get warp parameters */
-        ParamType getParameters() const {
+        ParamType parameters() const {
             return ParamType(_m(0, 2), _m(1, 2));
         }
         
@@ -285,7 +285,7 @@ namespace imagealign {
         typedef WarpTraits<WARP_EUCLIDEAN>::JacobianType JacobianType;
         
         /** Get warp parameters */
-        ParamType getParameters() const {
+        ParamType parameters() const {
             return ParamType(_m(0, 2), _m(1, 2), std::acos(_m(0,0)));
         }
         
@@ -362,7 +362,7 @@ namespace imagealign {
         typedef WarpTraits<WARP_SIMILARITY>::JacobianType JacobianType;
         
         /** Get warp parameters */
-        ParamType getParameters() const {
+        ParamType parameters() const {
             return ParamType(_m(0, 2), _m(1, 2), _m(0, 0) - 1.f, _m(1, 0));
         }
         
@@ -404,7 +404,7 @@ namespace imagealign {
             \return Parameters in canonical form (tx, ty, theta, scale)
          
          */
-        ParamType getParametersInCanonicalRepresentation()
+        ParamType parametersInCanonicalRepresentation()
         {
             // See http://math.stackexchange.com/questions/13150
             

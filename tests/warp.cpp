@@ -32,8 +32,8 @@ TEST_CASE("warp-translational")
     WarpType w;
     w.setIdentity();
     
-    REQUIRE(w.getParameters()(0,0) == 0.f);
-    REQUIRE(w.getParameters()(1,0) == 0.f);
+    REQUIRE(w.parameters()(0,0) == 0.f);
+    REQUIRE(w.parameters()(1,0) == 0.f);
     
     Traits::ParamType p;
     p(0,0) = 10.f;
@@ -62,9 +62,9 @@ TEST_CASE("warp-euclidean")
     WarpType w;
     w.setIdentity();
     
-    REQUIRE(w.getParameters()(0,0) == 0.f);
-    REQUIRE(w.getParameters()(1,0) == 0.f);
-    REQUIRE(w.getParameters()(2,0) == 0.f);
+    REQUIRE(w.parameters()(0,0) == 0.f);
+    REQUIRE(w.parameters()(1,0) == 0.f);
+    REQUIRE(w.parameters()(2,0) == 0.f);
     
     Traits::ParamType p;
     p(0,0) = 5.f;
@@ -96,13 +96,13 @@ TEST_CASE("warp-similarity")
     WarpType w;
     w.setIdentity();
     
-    REQUIRE(w.getParameters()(0,0) == 0.f);
-    REQUIRE(w.getParameters()(1,0) == 0.f);
-    REQUIRE(w.getParameters()(2,0) == 0.f);
-    REQUIRE(w.getParameters()(3,0) == 0.f);
+    REQUIRE(w.parameters()(0,0) == 0.f);
+    REQUIRE(w.parameters()(1,0) == 0.f);
+    REQUIRE(w.parameters()(2,0) == 0.f);
+    REQUIRE(w.parameters()(3,0) == 0.f);
     
     w.setParametersInCanonicalRepresentation(Traits::ParamType(5.f, 5.f, 1.7f, 2.0f));
-    Traits::ParamType pr = w.getParametersInCanonicalRepresentation();
+    Traits::ParamType pr = w.parametersInCanonicalRepresentation();
     REQUIRE(pr(0,0) == Catch::Detail::Approx(5));
     REQUIRE(pr(1,0) == Catch::Detail::Approx(5));
     REQUIRE(pr(2,0) == Catch::Detail::Approx(1.7));

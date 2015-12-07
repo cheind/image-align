@@ -46,8 +46,8 @@ TEST_CASE("forward-additive")
     al.align(w, 100, 0.001f);
     
     REQUIRE(al.iteration() < 100);
-    REQUIRE(w.getParameters()(0,0) == Catch::Detail::Approx(20).epsilon(0.01));
-    REQUIRE(w.getParameters()(1,0) == Catch::Detail::Approx(20).epsilon(0.01));
+    REQUIRE(w.parameters()(0,0) == Catch::Detail::Approx(20).epsilon(0.01));
+    REQUIRE(w.parameters()(1,0) == Catch::Detail::Approx(20).epsilon(0.01));
 }
 
 TEST_CASE("forward-additive-euclidean")
@@ -85,9 +85,9 @@ TEST_CASE("forward-additive-euclidean")
     al.align(w, 100, 0.001f);
     
     REQUIRE(al.iteration() < 100);
-    REQUIRE(w.getParameters()(0,0) == Catch::Detail::Approx(real(0,0)).epsilon(0.01));
-    REQUIRE(w.getParameters()(1,0) == Catch::Detail::Approx(real(1,0)).epsilon(0.01));
-    REQUIRE(w.getParameters()(2,0) == Catch::Detail::Approx(real(2,0)).epsilon(0.01));
+    REQUIRE(w.parameters()(0,0) == Catch::Detail::Approx(real(0,0)).epsilon(0.01));
+    REQUIRE(w.parameters()(1,0) == Catch::Detail::Approx(real(1,0)).epsilon(0.01));
+    REQUIRE(w.parameters()(2,0) == Catch::Detail::Approx(real(2,0)).epsilon(0.01));
 
 }
 
@@ -111,7 +111,7 @@ TEST_CASE("forward-additive-similarity")
     WarpType w;
     w.setParametersInCanonicalRepresentation(real);
     
-    Traits::ParamType realp = w.getParameters();
+    Traits::ParamType realp = w.parameters();
     
     ia::warpImage<uchar, ia::SAMPLE_BILINEAR>(target, tmpl, tmpl.size(), w);
     
@@ -127,9 +127,9 @@ TEST_CASE("forward-additive-similarity")
     al.align(w, iterations);
     
     REQUIRE(al.iteration() < 100);
-    REQUIRE(w.getParameters()(0,0) == Catch::Detail::Approx(realp(0,0)).epsilon(0.01));
-    REQUIRE(w.getParameters()(1,0) == Catch::Detail::Approx(realp(1,0)).epsilon(0.01));
-    REQUIRE(w.getParameters()(2,0) == Catch::Detail::Approx(realp(2,0)).epsilon(0.01));
-    REQUIRE(w.getParameters()(3,0) == Catch::Detail::Approx(realp(3,0)).epsilon(0.01));
+    REQUIRE(w.parameters()(0,0) == Catch::Detail::Approx(realp(0,0)).epsilon(0.01));
+    REQUIRE(w.parameters()(1,0) == Catch::Detail::Approx(realp(1,0)).epsilon(0.01));
+    REQUIRE(w.parameters()(2,0) == Catch::Detail::Approx(realp(2,0)).epsilon(0.01));
+    REQUIRE(w.parameters()(3,0) == Catch::Detail::Approx(realp(3,0)).epsilon(0.01));
     
 }

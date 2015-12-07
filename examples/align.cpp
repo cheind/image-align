@@ -33,7 +33,7 @@ void initializeWarp(cv::Size templateSize, cv::Size targetSize, ia::Warp<ia::WAR
 
 void perturbateWarp(ia::Warp<ia::WARP_TRANSLATION> &w) {
     
-    ia::WarpTraits<ia::WARP_TRANSLATION>::ParamType params = w.getParameters();
+    ia::WarpTraits<ia::WARP_TRANSLATION>::ParamType params = w.parameters();
     params(0,0) += (float)cv::theRNG().gaussian(8.f);
     params(1,0) += (float)cv::theRNG().gaussian(8.f);
     
@@ -51,7 +51,7 @@ void initializeWarp(cv::Size templateSize, cv::Size targetSize, ia::Warp<ia::WAR
 
 void perturbateWarp(ia::Warp<ia::WARP_EUCLIDEAN> &w) {
     
-    ia::WarpTraits<ia::WARP_EUCLIDEAN>::ParamType params = w.getParameters();
+    ia::WarpTraits<ia::WARP_EUCLIDEAN>::ParamType params = w.parameters();
     params(0,0) += (float)cv::theRNG().gaussian(8.f);
     params(1,0) += (float)cv::theRNG().gaussian(8.f);
     params(2,0) += (float)cv::theRNG().gaussian(0.2f);
@@ -73,7 +73,7 @@ void initializeWarp(cv::Size templateSize, cv::Size targetSize, ia::Warp<ia::WAR
 void perturbateWarp(ia::Warp<ia::WARP_SIMILARITY> &w) {
     
     // Note parameters are tx, ty, a and b. So we rather use the canoncial form
-    ia::WarpTraits<ia::WARP_SIMILARITY>::ParamType params = w.getParametersInCanonicalRepresentation();
+    ia::WarpTraits<ia::WARP_SIMILARITY>::ParamType params = w.parametersInCanonicalRepresentation();
     
     params(0,0) += (float)cv::theRNG().gaussian(3.f);
     params(1,0) += (float)cv::theRNG().gaussian(3.f);
