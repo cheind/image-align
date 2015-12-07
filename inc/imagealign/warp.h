@@ -20,7 +20,13 @@
 #ifndef IMAGE_ALIGN_WARP_H
 #define IMAGE_ALIGN_WARP_H
 
+#include <imagealign/config.h>
+
+IA_DISABLE_PRAGMA_WARN(4190)
+IA_DISABLE_PRAGMA_WARN(4244)
 #include <opencv2/core/core.hpp>
+IA_DISABLE_PRAGMA_WARN_END
+IA_DISABLE_PRAGMA_WARN_END
 
 namespace imagealign {
     

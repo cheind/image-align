@@ -68,6 +68,6 @@ TEST_CASE("sampling-nearest")
     // Off-centers
     REQUIRE(s.sample<uchar>(img, cv::Point2f(1.0, 0.5)) == 0);
     REQUIRE(s.sample<uchar>(img, cv::Point2f(1.0, 1.0)) == 0);
-    REQUIRE(s.sample<uchar>(img, cv::Point2f(1.6, 0.5)) == 64);
+    REQUIRE(s.sample<uchar>(img, cv::Point2f(1.6f, 0.5)) == 64);
 
 }

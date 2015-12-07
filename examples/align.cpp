@@ -18,7 +18,11 @@
 */
 
 #include <imagealign/imagealign.h>
+IA_DISABLE_PRAGMA_WARN(4190)
+IA_DISABLE_PRAGMA_WARN(4244)
 #include <opencv2/opencv.hpp>
+IA_DISABLE_PRAGMA_WARN_END
+IA_DISABLE_PRAGMA_WARN_END
 #include <iomanip>
 
 namespace ia = imagealign;

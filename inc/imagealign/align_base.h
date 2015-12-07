@@ -21,9 +21,15 @@
 #define IMAGE_ALIGN_ALIGN_BASE_H
 
 #include <imagealign/warp.h>
+#include <imagealign/config.h>
+#include <vector>
+
+IA_DISABLE_PRAGMA_WARN(4190)
+IA_DISABLE_PRAGMA_WARN(4244)
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
-#include <vector>
+IA_DISABLE_PRAGMA_WARN_END
+IA_DISABLE_PRAGMA_WARN_END
 
 namespace imagealign {
     
