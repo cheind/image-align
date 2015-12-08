@@ -80,7 +80,7 @@ Please note, Lucas-Kanade methods are locally operating methods that require a g
 **Image Alignment** requires the following pre-requisites
 
  - [CMake](www.cmake.org) - for generating cross platform build files
- - [OpenCV](www.opencv.org) - for image processing related functions 
+ - [OpenCV 2.x / 3.x](www.opencv.org) - for image processing related functions 
  
 To build from source
 
