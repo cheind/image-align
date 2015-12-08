@@ -101,6 +101,9 @@ namespace imagealign {
         
         /** Helper function to allocate a new HessianType object initialized to zero. */
         static HessianType zeroHessian(int nParams);
+        
+        /** Helper function to allocate a new GradientType object initialized to zero. */
+        static GradientType initGradient(Scalar x, Scalar y);
     };
     
     /** 
@@ -142,6 +145,11 @@ namespace imagealign {
         /** Helper function to allocate a new HessianType object initialized to zero. */
         static HessianType zeroHessian(int nParams) {
             return HessianType::zeros();
+        }
+        
+        /** Helper function to initialize a new gradient. */
+        static GradientType initGradient(Scalar x, Scalar y) {
+            return GradientType(x, y);
         }
 
     };
@@ -185,6 +193,14 @@ namespace imagealign {
         /** Helper function to allocate a new HessianType object initialized to zero. */
         static HessianType zeroHessian(int nParams) {
             return HessianType::zeros(nParams, nParams, CV_MAKETYPE(cv::DataType<Scalar>::depth, 1));
+        }
+        
+        /** Helper function to initialize a new gradient. */
+        static GradientType initGradient(Scalar x, Scalar y) {
+            GradientType g(1, 2, CV_MAKETYPE(cv::DataType<Scalar>::depth, 1));
+            g.at<Scalar>(0, 0) = x;
+            g.at<Scalar>(0, 1) = y;
+            return g;
         }
         
     };

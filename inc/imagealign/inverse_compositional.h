@@ -109,7 +109,7 @@ namespace imagealign {
                         PointType p(x + ScalarType(0.5), y + ScalarType(0.5));
                         
                         // 1. Compute the gradient of the template
-                        const GradientType grad = GradientType(gradient<float, SAMPLE_NEAREST>(tpl, p));
+                        const GradientType grad = gradient<float, SAMPLE_NEAREST, typename W::Traits>(tpl, p);
                         
                         // 2. Evaluate the Jacobian of image location.
                         // Note: Jacobians are computed with pixel positions corresponding

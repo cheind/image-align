@@ -59,6 +59,7 @@ namespace imagealign {
         typedef typename W::Traits::ParamType ParamType;
         typedef typename W::Traits::HessianType HessianType;
         typedef typename W::Traits::PixelSDIType PixelSDIType;
+        typedef typename W::Traits::GradientType GradientType;
         typedef typename W::Traits::JacobianType JacobianType;
         typedef typename W::Traits::PointType PointType;
         typedef typename W::Traits::ScalarType ScalarType;
@@ -123,7 +124,7 @@ namespace imagealign {
                     sumConstraints += 1;
                     
                     // 3. Compute the target gradient warped back
-                    const cv::Matx<ScalarType, 1, 2> grad = gradient<float, SAMPLE_BILINEAR>(target, ptgt);
+                    const GradientType grad = gradient<float, SAMPLE_BILINEAR, typename W::Traits>(target, ptgt);
                     
                     // 4. Compute the jacobian for the template pixel position
                     JacobianType jacobian = w.jacobian(ptplOrig);

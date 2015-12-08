@@ -31,16 +31,20 @@ namespace imagealign {
         Approximates the image derivate in x and y direction for the given image coordinates.
         Approximation is based on central difference.
      */
-    template<class ChannelType, int SampleMethod, class Scalar>
-    inline cv::Matx<Scalar, 1, 2> gradient(const cv::Mat &img, const cv::Matx<Scalar, 2, 1> &p, const Sampler<SampleMethod> &s = Sampler<SampleMethod>())
+    template<class ChannelType, int SampleMethod, class WTraits>
+    typename WTraits::GradientType gradient(const cv::Mat &img,
+                                            const typename WTraits::PointType &p,
+                                            const Sampler<SampleMethod> &s = Sampler<SampleMethod>())
     {
-        return cv::Matx<ChannelType, 1, 2>(
-            (s.template sample<ChannelType>(img, p(0) + Scalar(1), p(1)) -
-             s.template sample<ChannelType>(img, p(0) - Scalar(1), p(1))) * Scalar(0.5),
-                                           
-            (s.template sample<ChannelType>(img, p(0), p(1) + Scalar(1)) -
-             s.template sample<ChannelType>(img, p(0), p(1) - Scalar(1))) * Scalar(0.5)
-        );
+        typedef typename WTraits::ScalarType Scalar;
+        
+        Scalar x = (s.template sample<ChannelType>(img, p(0) + Scalar(1), p(1)) -
+                    s.template sample<ChannelType>(img, p(0) - Scalar(1), p(1))) * Scalar(0.5);
+        
+        Scalar y = (s.template sample<ChannelType>(img, p(0), p(1) + Scalar(1)) -
+                    s.template sample<ChannelType>(img, p(0), p(1) - Scalar(1))) * Scalar(0.5);
+        
+        return WTraits::initGradient(x, y);
     }
     
 }

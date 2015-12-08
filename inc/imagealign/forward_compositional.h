@@ -77,6 +77,7 @@ namespace imagealign {
         typedef typename W::Traits::ParamType ParamType;
         typedef typename W::Traits::HessianType HessianType;
         typedef typename W::Traits::PixelSDIType PixelSDIType;
+        typedef typename W::Traits::GradientType GradientType;
         typedef typename W::Traits::JacobianType JacobianType;
         typedef typename W::Traits::PointType PointType;
         typedef typename W::Traits::ScalarType ScalarType;
@@ -156,7 +157,7 @@ namespace imagealign {
                     sumConstraints += 1;
                     
                     // 3. Compute the target gradient on the warped image
-                    const cv::Matx<ScalarType, 1, 2> grad = gradient<float, SAMPLE_NEAREST>(_warpedTargetImage, ptpl);
+                    const GradientType grad = gradient<float, SAMPLE_NEAREST, typename W::Traits>(_warpedTargetImage, ptpl);
                     
                     // 4. Lookup the prec-computed Jacobian for the template pixel position corresponding to finest level.
                     const JacobianType &jacobian = _jacobianPyramid[this->level()][idx];
