@@ -23,6 +23,8 @@
 #include <imagealign/warp.h>
 #include <imagealign/config.h>
 #include <imagealign/image_pyramid.h>
+#include <iostream>
+
 
 namespace imagealign {
     
@@ -63,6 +65,7 @@ namespace imagealign {
          
             \param tmpl Single channel template image
             \param target Single channel target image to align template with.
+            \param w The warp.
             \param pyramidLevels Maximum number of pyramid levels to generate.
          */
         void prepare(cv::InputArray tmpl, cv::InputArray target, const W &w, int pyramidLevels)
@@ -71,10 +74,16 @@ namespace imagealign {
             CV_Assert(tmpl.channels() == 1);
             CV_Assert(target.channels() == 1);
             
-            pyramidLevels = std::max<int>(pyramidLevels, 1);
+            std::cout << ImagePyramid::maxLevelsForImageSize(tmpl.size()) << " " << ImagePyramid::maxLevelsForImageSize(target.size()) << std::endl;
             
-            _templatePyramid.create(tmpl, pyramidLevels);
-            _targetPyramid.create(target, pyramidLevels);
+            // Sanitize levels
+            int maxLevels = std::min<int>(ImagePyramid::maxLevelsForImageSize(tmpl.size()),
+                                          ImagePyramid::maxLevelsForImageSize(target.size()));
+            
+            _levels = std::max<int>(1, std::min<int>(pyramidLevels, maxLevels));
+            
+            _templatePyramid.create(tmpl, _levels);
+            _targetPyramid.create(target, _levels);
             
             _inc = W::Traits::zeroParam(w.numParameters());
             _iter = 0;
@@ -84,7 +93,47 @@ namespace imagealign {
             static_cast<D*>(this)->prepareImpl(w);
         }
         
-        /** 
+        /**
+            Prepare for alignment.
+         
+            This function takes the template image and an already built target image pyramid
+            and performs necessary pre-calculations to speed up the alignment process.
+         
+            This function comes in handy when you want to track multiple templates on a single
+            target image. Then, the target image pyramid can be built once, and shared among all
+            alignment objects.
+         
+            \param tmpl Single channel template image
+            \param target Pre-built image pyramid of target image.
+            \param w The warp.
+            \param pyramidLevels Maximum number of pyramid levels to generate.
+         */
+        void prepare(cv::InputArray tmpl, const ImagePyramid &target, const W &w, int pyramidLevels)
+        {
+            // Do the basic thing everyone needs
+            CV_Assert(target.numLevels() > 0);
+            CV_Assert(tmpl.channels() == 1);
+            CV_Assert(target[0].channels() == 1);
+            
+            
+            // Sanitize levels
+            int maxLevels = std::min<int>(ImagePyramid::maxLevelsForImageSize(tmpl.size()),
+                                          target.numLevels());
+            
+            _levels = std::max<int>(1, std::min<int>(pyramidLevels, maxLevels));
+            
+            _templatePyramid.create(tmpl, _levels);
+            _targetPyramid = target;
+            
+            _inc = W::Traits::zeroParam(w.numParameters());
+            _iter = 0;
+            setLevel(0);
+            
+            // Invoke prepare of derived
+            static_cast<D*>(this)->prepareImpl(w);
+        }
+        
+        /**
             Perform a single alignment step.
          
             This method takes the current state of the warp parameters and refines
@@ -188,7 +237,7 @@ namespace imagealign {
             Return the total number of levels.
          */
         int numLevels() const {
-            return _targetPyramid.numLevels();
+            return _levels;
         }
         
         /**
@@ -290,6 +339,7 @@ namespace imagealign {
         ImagePyramid _templatePyramid;
         ImagePyramid _targetPyramid;
         
+        int _levels;
         int _level;
         int _iter;
         ScalarType _error;
