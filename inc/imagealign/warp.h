@@ -92,6 +92,12 @@ namespace imagealign {
         
         /** Type to hold the steepest descent image for a single pixel. Matrix of size 1xN. */
         typedef void PixelSDIType;
+        
+        /** Helper function to allocate a new ParamType object initialized to zero. */
+        static ParamType zeroParam(int nParams);
+        
+        /** Helper function to allocate a new HessianType object initialized to zero. */
+        static HessianType zeroHessian(int nParams);
     };
     
     /** 
@@ -101,7 +107,7 @@ namespace imagealign {
     struct WarpTraitsForCompileTimeKnownParameterCount {
         enum {
             WarpMode = W,
-            NParameters = N
+            ParametersAtCompileTime = N
         };
         
         /** Precision of floating point type */
@@ -111,16 +117,26 @@ namespace imagealign {
         typedef cv::Matx<Scalar, 2, 1> PointType;
         
         /** Type to hold parameters of warp. */
-        typedef cv::Matx<Scalar, NParameters, 1> ParamType;
+        typedef cv::Matx<Scalar, ParametersAtCompileTime, 1> ParamType;
         
         /** Type to hold Jacobian of warp. */
-        typedef cv::Matx<Scalar, 2, NParameters> JacobianType;
+        typedef cv::Matx<Scalar, 2, ParametersAtCompileTime> JacobianType;
         
         /** Type to hold Hessian matrix. */
-        typedef cv::Matx<Scalar, NParameters, NParameters> HessianType;
+        typedef cv::Matx<Scalar, ParametersAtCompileTime, ParametersAtCompileTime> HessianType;
         
         /** Type to hold the steepest descent image for a single pixel */
-        typedef cv::Matx<Scalar, 1, NParameters> PixelSDIType;
+        typedef cv::Matx<Scalar, 1, ParametersAtCompileTime> PixelSDIType;
+        
+        /** Helper function to allocate a new ParamType object initialized to zero. */
+        static ParamType zeroParam(int nParams) {
+            return ParamType::zeros();
+        }
+        
+        /** Helper function to allocate a new HessianType object initialized to zero. */
+        static HessianType zeroHessian(int nParams) {
+            return HessianType::zeros();
+        }
 
     };
     
@@ -156,6 +172,9 @@ namespace imagealign {
         /** Be copy-constructible from another warp. */
         Warp(const Warp<WarpMode, Scalar> &other);
         
+        /** Be able to return the number of parameters. */
+        int numParameters() const;
+        
         /** Be able to set to identity transform. */
         void setIdentity();
         
@@ -190,6 +209,10 @@ namespace imagealign {
         
         inline PlanarWarp() {
             setIdentity();
+        }
+        
+        inline int numParameters() const {
+            return WarpTraits<WarpMode, Scalar>::ParametersAtCompileTime;
         }
         
         inline void setIdentity() {

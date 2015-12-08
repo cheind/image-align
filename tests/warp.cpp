@@ -33,6 +33,7 @@ TEST_CASE("warp-translational")
     
     REQUIRE(w.parameters()(0,0) == 0.f);
     REQUIRE(w.parameters()(1,0) == 0.f);
+    REQUIRE(w.numParameters() == 2);
     
     W::Traits::ParamType p;
     p(0,0) = 10.f;
@@ -63,6 +64,7 @@ TEST_CASE("warp-euclidean")
     REQUIRE(w.parameters()(0,0) == 0.f);
     REQUIRE(w.parameters()(1,0) == 0.f);
     REQUIRE(w.parameters()(2,0) == 0.f);
+    REQUIRE(w.numParameters() == 3);
     
     W::Traits::ParamType p;
     p(0,0) = 5.f;
@@ -97,6 +99,7 @@ TEST_CASE("warp-similarity")
     REQUIRE(w.parameters()(1,0) == 0.f);
     REQUIRE(w.parameters()(2,0) == 0.f);
     REQUIRE(w.parameters()(3,0) == 0.f);
+    REQUIRE(w.numParameters() == 4);
     
     w.setParametersInCanonicalRepresentation(W::Traits::ParamType(5.f, 5.f, 1.7f, 2.0f));
     W::Traits::ParamType pr = w.parametersInCanonicalRepresentation();
