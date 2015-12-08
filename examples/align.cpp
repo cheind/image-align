@@ -87,18 +87,25 @@ void perturbateWarp(ia::Warp<ia::WARP_SIMILARITY, float> &w) {
     w.setParametersInCanonicalRepresentation(params);
 }
 
+template<class Scalar>
+cv::Point_<Scalar> toP(const cv::Matx<Scalar, 2, 1> &p) {
+    return cv::Point_<Scalar>(p(0), p(1));
+}
+
 template<int WarpType>
-void drawRectOfTemplate(cv::Mat &img, const ia::Warp<WarpType, float> &w, cv::Size tplSize, cv::Scalar color) {
+void drawRectOfTemplate(cv::Mat &img, const ia::Warp<WarpType, float> &w, cv::Size tplSize, cv::Scalar color)
+{
+    typedef typename ia::WarpTraits<WarpType, float>::PointType PointType;
     
-    cv::Point2f c0 = w(cv::Point2f(0.5f, 0.5f));
-    cv::Point2f c1 = w(cv::Point2f(0.5f + tplSize.width, 0.5f));
-    cv::Point2f c2 = w(cv::Point2f(0.5f + tplSize.width, 0.5f + tplSize.height));
-    cv::Point2f c3 = w(cv::Point2f(0.5f, 0.5f + tplSize.height));
+    PointType c0 = w(PointType(0.5f, 0.5f));
+    PointType c1 = w(PointType(0.5f + tplSize.width, 0.5f));
+    PointType c2 = w(PointType(0.5f + tplSize.width, 0.5f + tplSize.height));
+    PointType c3 = w(PointType(0.5f, 0.5f + tplSize.height));
     
-    cv::line(img, c0, c1, color, 1, CV_AA);
-    cv::line(img, c1, c2, color, 1, CV_AA);
-    cv::line(img, c2, c3, color, 1, CV_AA);
-    cv::line(img, c3, c0, color, 1, CV_AA);
+    cv::line(img, toP(c0), toP(c1), color, 1, CV_AA);
+    cv::line(img, toP(c1), toP(c2), color, 1, CV_AA);
+    cv::line(img, toP(c2), toP(c3), color, 1, CV_AA);
+    cv::line(img, toP(c3), toP(c0), color, 1, CV_AA);
 }
 
 int main(int argc, char **argv)

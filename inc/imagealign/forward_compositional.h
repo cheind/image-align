@@ -74,6 +74,13 @@ namespace imagealign {
     class AlignForwardCompositional : public AlignBase< AlignForwardCompositional<W>, W> {
     protected:
         
+        typedef typename W::Traits::ParamType ParamType;
+        typedef typename W::Traits::HessianType HessianType;
+        typedef typename W::Traits::PixelSDIType PixelSDIType;
+        typedef typename W::Traits::JacobianType JacobianType;
+        typedef typename W::Traits::PointType PointType;
+        typedef typename W::Traits::ScalarType ScalarType;
+        
         /** 
             Prepare for alignment.
          
@@ -91,7 +98,7 @@ namespace imagealign {
             int idx = 0;
             for (int y = 0; y < s.height; ++y) {
                 for (int x = 0; x < s.width; ++x, ++idx) {
-                    _jacobians[idx] = w.jacobian(cv::Point2f(x + 0.5f, y + 0.5f));
+                    _jacobians[idx] = w.jacobian(PointType(x + ScalarType(0.5), y + ScalarType(0.5)));
                 }
             }
         }
@@ -110,11 +117,6 @@ namespace imagealign {
             cv::Mat target = this->targetImage();
             
             int pixelScaleUp = (int)this->scaleUpFactor();
-            
-            typedef typename W::Traits::HessianType HessianType;
-            typedef typename W::Traits::PixelSDIType PixelSDIType;
-            typedef typename W::Traits::ParamType ParamType;
-            typedef typename W::Traits::JacobianType JacobianType;
             
             // Computing the gradient happens on the warped image. Since evaluating the
             // the gradient in both directions takes 4 bilinear lookups, we are better off
@@ -135,7 +137,7 @@ namespace imagealign {
                 const int idxRowOrig = (y * pixelScaleUp) * (tpl.cols * pixelScaleUp);
                 
                 for (int x = 0; x < tpl.cols; ++x) {
-                    cv::Point2f ptpl(x + 0.5f, y + 0.5f);
+                    PointType ptpl(x + ScalarType(0.5), y + ScalarType(0.5));
                     const float templateIntensity = tplRow[x];
                     
                     // 1. Lookup the target intensity using the already back warped image.

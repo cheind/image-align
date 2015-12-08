@@ -72,17 +72,20 @@ namespace imagealign {
     class AlignInverseCompositional : public AlignBase< AlignInverseCompositional<W>, W > {
     protected:
         
-        /** 
+        typedef typename W::Traits::ParamType ParamType;
+        typedef typename W::Traits::HessianType HessianType;
+        typedef typename W::Traits::PixelSDIType PixelSDIType;
+        typedef typename W::Traits::JacobianType JacobianType;
+        typedef typename W::Traits::PointType PointType;
+        typedef typename W::Traits::ScalarType ScalarType;
+        
+        /**
             Prepare for alignment.
          
             In the forward compositional algorithm only the Jacobian of the warp can be precomputed.
          */
         void prepareImpl()
         {
-            typedef typename W::Traits::HessianType HessianType;
-            typedef typename W::Traits::PixelSDIType PixelSDIType;
-            typedef typename W::Traits::JacobianType JacobianType;
-            
             W w;
             w.setIdentity();
             
@@ -101,7 +104,7 @@ namespace imagealign {
                 int idx = 0;
                 for (int y = 0; y < tpl.rows; ++y) {
                     for (int x = 0; x < tpl.cols; ++x, ++idx) {
-                        cv::Point2f p(x + 0.5f, y + 0.5f);
+                        PointType p(x + ScalarType(0.5), y + ScalarType(0.5));
                         
                         // 1. Compute the gradient of the template
                         const cv::Matx<float, 1, 2> grad = gradient<float, SAMPLE_NEAREST>(tpl, p);
@@ -141,8 +144,6 @@ namespace imagealign {
             cv::Mat tpl = this->templateImage();
             cv::Mat target = this->targetImage();
             
-            typedef typename W::Traits::ParamType ParamType;
-            
             ParamType b = ParamType::zeros();
             
             Sampler<SAMPLE_BILINEAR> s;
@@ -154,11 +155,11 @@ namespace imagealign {
                 const float *tplRow = tpl.ptr<float>(y);
                 
                 for (int x = 0; x < tpl.cols; ++x, ++idx) {
-                    cv::Point2f ptpl(x + 0.5f, y + 0.5f);
+                    PointType ptpl(x + ScalarType(0.5), y + ScalarType(0.5));
                     const float templateIntensity = tplRow[x];
                     
                     // 1. Warp target pixel back to template using w
-                    cv::Point2f ptgt = this->scaleDown(w(this->scaleUp(ptpl)));
+                    PointType ptgt = this->scaleDown(w(this->scaleUp(ptpl)));
                     const float targetIntensity = s.sample<float>(target, ptgt);
                     
                     // 2. Compute the error. Roles reverse compared to forward additive / compositional

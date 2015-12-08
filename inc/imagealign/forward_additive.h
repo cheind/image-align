@@ -56,6 +56,13 @@ namespace imagealign {
     class AlignForwardAdditive : public AlignBase< AlignForwardAdditive<W>, W> {
     protected:
         
+        typedef typename W::Traits::ParamType ParamType;
+        typedef typename W::Traits::HessianType HessianType;
+        typedef typename W::Traits::PixelSDIType PixelSDIType;
+        typedef typename W::Traits::JacobianType JacobianType;
+        typedef typename W::Traits::PointType PointType;
+        typedef typename W::Traits::ScalarType ScalarType;
+        
         /** 
             Prepare for alignment.
          
@@ -81,11 +88,6 @@ namespace imagealign {
             cv::Mat tpl = this->templateImage();
             cv::Mat target = this->targetImage();
             
-            typedef typename W::Traits::JacobianType JacobianType;
-            typedef typename W::Traits::HessianType HessianType;
-            typedef typename W::Traits::PixelSDIType PixelSDIType;
-            typedef typename W::Traits::ParamType ParamType;
-            
             Sampler<SAMPLE_BILINEAR> s;
             
             HessianType hessian = HessianType::zeros();
@@ -98,13 +100,13 @@ namespace imagealign {
                 const float *tplRow = tpl.ptr<float>(y);
                 
                 for (int x = 0; x < tpl.cols; ++x) {
-                    cv::Point2f ptpl(x + 0.5f, y + 0.5f);
+                    PointType ptpl(x + ScalarType(0.5), y + ScalarType(0.5));
                     const float templateIntensity = tplRow[x];
                     
-                    cv::Point2f ptplOrig = this->scaleUp(ptpl);
+                    PointType ptplOrig = this->scaleUp(ptpl);
                     
                     // 1. Warp target pixel back to template using w
-                    cv::Point2f ptgt = this->scaleDown(w(ptplOrig));
+                    PointType ptgt = this->scaleDown(w(ptplOrig));
                     const float targetIntensity = s.sample<float>(target, ptgt);
                     
                     // 2. Compute the error

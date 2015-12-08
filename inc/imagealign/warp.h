@@ -78,6 +78,9 @@ namespace imagealign {
         /** Precision of floating point type */
         typedef Scalar ScalarType;
         
+        /** Type to hold a 2 dimensional point */
+        typedef void PointType;
+        
         /** Type to hold parameters of warp. Matrix of size Nx1.*/
         typedef void ParamType;
         
@@ -89,38 +92,6 @@ namespace imagealign {
         
         /** Type to hold the steepest descent image for a single pixel. Matrix of size 1xN. */
         typedef void PixelSDIType;
-    };
-    
-    
-    /** 
-        Interface declaration for warps.
-     
-        Custom warps should at least offer the given methods and constructors.
-    */
-    template<int WarpMode, class Scalar>
-    class Warp {
-    public:
-        /** Be copy-constructible from another warp. */
-        Warp(const Warp<WarpMode, Scalar> &other);
-        
-        /** Be able to set to identity transform. */
-        void setIdentity();
-        
-        /** Be able to warp single pair of image coordinates. */
-        inline cv::Point2f operator()(const cv::Point2f &p) const;
-        
-        /** Be able to compute the Jacobian of the warp at a given coordinate pair. */
-        typename WarpTraits<WarpMode, Scalar>::JacobianType jacobian(const cv::Point2f &p) const;
-        
-        /** Be able to perform the forward additive step. Only when using AlignForwardAdditive. */
-        void updateForwardAdditive(const typename WarpTraits<WarpMode, Scalar>::ParamType &delta);
-        
-        /** Be able to perform the forward compositional step. Only when using AlignForwardCompositional. */
-        void updateForwardCompositional(const typename WarpTraits<WarpMode, Scalar>::ParamType &delta);
-        
-        /** Be able to perform the inverse compositional step. Only when using AlignInverseCompositional. */
-        void updateInverseCompositional(const typename WarpTraits<WarpMode, Scalar>::ParamType &delta);
-
     };
     
     /** 
@@ -135,6 +106,9 @@ namespace imagealign {
         
         /** Precision of floating point type */
         typedef Scalar ScalarType;
+        
+        /** Type to hold a 2 dimensional point */
+        typedef cv::Matx<Scalar, 2, 1> PointType;
         
         /** Type to hold parameters of warp. */
         typedef cv::Matx<Scalar, NParameters, 1> ParamType;
@@ -167,6 +141,40 @@ namespace imagealign {
      */
     template<class Scalar>
     struct WarpTraits<WARP_SIMILARITY, Scalar> : WarpTraitsForCompileTimeKnownParameterCount<WARP_SIMILARITY, 4, Scalar> {};
+    
+    /**
+        Interface declaration for warps.
+     
+        Custom warps should at least offer the given methods and constructors.
+     */
+    template<int WarpMode, class Scalar>
+    class Warp {
+    public:
+        /** Access the traits type. */
+        typedef WarpTraits<WarpMode, Scalar> Traits;
+        
+        /** Be copy-constructible from another warp. */
+        Warp(const Warp<WarpMode, Scalar> &other);
+        
+        /** Be able to set to identity transform. */
+        void setIdentity();
+        
+        /** Be able to warp single pair of image coordinates. */
+        typename Traits::PointType operator()(const typename Traits::PointType &p) const;
+        
+        /** Be able to compute the Jacobian of the warp at a given coordinate pair. */
+        typename Traits::JacobianType jacobian(const typename Traits::PointType &p) const;
+        
+        /** Be able to perform the forward additive step. Needed only when using AlignForwardAdditive. */
+        void updateForwardAdditive(const typename Traits::ParamType &delta);
+        
+        /** Be able to perform the forward compositional step. Needed only when using AlignForwardCompositional. */
+        void updateForwardCompositional(const typename Traits::ParamType &delta);
+        
+        /** Be able to perform the inverse compositional step. Needed only when using AlignInverseCompositional. */
+        void updateInverseCompositional(const typename Traits::ParamType &delta);
+        
+    };
 
     /**
         Base class for warps based on planar motions.
@@ -224,17 +232,18 @@ namespace imagealign {
         }
         
         /** Warp point */
-        inline cv::Point2f operator()(const cv::Point2f &p) const {
+        inline cv::Matx<Scalar, 2, 1> operator()(const cv::Matx<Scalar, 2, 1> &p) const {
             
-            cv::Point3f x(p.x, p.y, 1.f);
+            cv::Matx<Scalar, 3, 1> x(p(0), p(1), 1.f);
             x = _m * x;
             
             // Compile time if to speed up matrix calculation.
             // Todo: Consider Affine matrix to be represented by 2x3
             if (WarpMode < WARP_PERSPECTIVE) {
-                return cv::Point2f(x.x, x.y);
+                return x.template get_minor<2, 1>(0, 0);
             } else {
-                return cv::Point2f(x.x / x.z, x.y / x.z);
+                x = x * (Scalar(1) / x(2, 0)); // Normalize
+                return x.template get_minor<2, 1>(0, 0);
             }
             
         }
@@ -264,6 +273,7 @@ namespace imagealign {
 
     public:
         typedef WarpTraits<WARP_TRANSLATION, Scalar> Traits;
+        typedef typename Traits::PointType PointType;
         typedef typename Traits::ParamType ParamType;
         typedef typename Traits::JacobianType JacobianType;
 
@@ -290,10 +300,10 @@ namespace imagealign {
                 y   0    1
          
          */
-        JacobianType jacobian(const cv::Point2f &p) const {
+        JacobianType jacobian(const PointType &p) const {
             JacobianType j = JacobianType::zeros();
-            j(0, 0) = 1.f;
-            j(1, 1) = 1.f;
+            j(0, 0) = Scalar(1);
+            j(1, 1) = Scalar(1);
             return j;
         }
         
@@ -341,6 +351,7 @@ namespace imagealign {
     public:
         
         typedef WarpTraits<WARP_EUCLIDEAN, Scalar> Traits;
+        typedef typename Traits::PointType PointType;
         typedef typename Traits::ParamType ParamType;
         typedef typename Traits::JacobianType JacobianType;
         
@@ -379,16 +390,16 @@ namespace imagealign {
                 c = cos(theta)
                 s = sin(theta)
          */
-        JacobianType jacobian(const cv::Point2f &p) const {
+        JacobianType jacobian(const PointType &p) const {
             JacobianType j = JacobianType::zeros();
-            j(0, 0) = 1.f;
-            j(1, 1) = 1.f;
+            j(0, 0) = Scalar(1);
+            j(1, 1) = Scalar(1);
             
             float c = _m(1, 1); // cos(theta)
             float s = _m(1, 0); // sin(theta)
             
-            j(0, 2) = -s * p.x - c * p.y;
-            j(1, 2) = c * p.x - s * p.y;
+            j(0, 2) = -s * p(0) - c * p(1);
+            j(1, 2) = c * p(0) - s * p(1);
             
             return j;
         }
@@ -443,12 +454,13 @@ namespace imagealign {
     public:
         
         typedef WarpTraits<WARP_SIMILARITY, Scalar> Traits;
+        typedef typename Traits::PointType PointType;
         typedef typename Traits::ParamType ParamType;
         typedef typename Traits::JacobianType JacobianType;
         
         /** Get warp parameters */
         ParamType parameters() const {
-            return ParamType(_m(0, 2), _m(1, 2), _m(0, 0) - 1.f, _m(1, 0));
+            return ParamType(_m(0, 2), _m(1, 2), _m(0, 0) - Scalar(1), _m(1, 0));
         }
         
         /** Set warp parameters */
@@ -459,10 +471,10 @@ namespace imagealign {
             float a = p(2, 0);
             float b = p(3, 0);
             
-            _m(0,0) = 1.f + a;
+            _m(0,0) = Scalar(1) + a;
             _m(0,1) = -b;
             _m(1,0) = b;
-            _m(1,1) = 1.f + a;
+            _m(1,1) = Scalar(1) + a;
         }
         
         /** 
@@ -476,7 +488,7 @@ namespace imagealign {
          
             */
         void setParametersInCanonicalRepresentation(const ParamType &p) {
-            setParameters(ParamType(p(0,0), p(1, 0), p(3,0) * std::cos(p(2,0)) - 1.f, p(3,0) * std::sin(p(2,0))));
+            setParameters(ParamType(p(0,0), p(1, 0), p(3,0) * std::cos(p(2,0)) - Scalar(1), p(3,0) * std::sin(p(2,0))));
         }
         
         /**
@@ -516,16 +528,16 @@ namespace imagealign {
                 y   0    1   y   x
          
          */
-        JacobianType jacobian(const cv::Point2f &p) const {
+        JacobianType jacobian(const PointType &p) const {
             JacobianType j = JacobianType::zeros();
-            j(0, 0) = 1.f;
-            j(1, 1) = 1.f;
+            j(0, 0) = Scalar(1);
+            j(1, 1) = Scalar(1);
             
-            j(0, 2) = p.x;
-            j(1, 2) = p.y;
+            j(0, 2) = p(0);
+            j(1, 2) = p(1);
             
-            j(0, 3) = -p.y;
-            j(1, 3) = p.x;
+            j(0, 3) = -p(1);
+            j(1, 3) = p(0);
             
             return j;
         }

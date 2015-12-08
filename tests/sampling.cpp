@@ -35,15 +35,17 @@ TEST_CASE("sampling-bilinear")
     img.at<uchar>(1,0) = 128;
     img.at<uchar>(1,1) = 192;
 
+    typedef cv::Matx<double, 2, 1> PointType;
+    
     // Pixel centers
-    REQUIRE(s.sample<uchar>(img, cv::Point2f(0.5, 0.5)) == 0);
-    REQUIRE(s.sample<uchar>(img, cv::Point2f(0.5, 1.5)) == 128);
-    REQUIRE(s.sample<uchar>(img, cv::Point2f(1.5, 0.5)) == 64);
-    REQUIRE(s.sample<uchar>(img, cv::Point2f(1.5, 1.5)) == 192);
+    REQUIRE(s.sample<uchar>(img, PointType(0.5, 0.5)) == 0);
+    REQUIRE(s.sample<uchar>(img, PointType(0.5, 1.5)) == 128);
+    REQUIRE(s.sample<uchar>(img, PointType(1.5, 0.5)) == 64);
+    REQUIRE(s.sample<uchar>(img, PointType(1.5, 1.5)) == 192);
 
     // Off-centers
-    REQUIRE(s.sample<uchar>(img, cv::Point2f(1.0, 0.5)) == 32);
-    REQUIRE(s.sample<uchar>(img, cv::Point2f(1.0, 1.0)) == 96);
+    REQUIRE(s.sample<uchar>(img, PointType(1.0, 0.5)) == 32);
+    REQUIRE(s.sample<uchar>(img, PointType(1.0, 1.0)) == 96);
 }
 
 TEST_CASE("sampling-nearest")
@@ -59,15 +61,17 @@ TEST_CASE("sampling-nearest")
     img.at<uchar>(1,0) = 128;
     img.at<uchar>(1,1) = 192;
     
+    typedef cv::Matx<double, 2, 1> PointType;
+    
     // Pixel centers
-    REQUIRE(s.sample<uchar>(img, cv::Point2f(0.5, 0.5)) == 0);
-    REQUIRE(s.sample<uchar>(img, cv::Point2f(0.5, 1.5)) == 128);
-    REQUIRE(s.sample<uchar>(img, cv::Point2f(1.5, 0.5)) == 64);
-    REQUIRE(s.sample<uchar>(img, cv::Point2f(1.5, 1.5)) == 192);
+    REQUIRE(s.sample<uchar>(img, PointType(0.5, 0.5)) == 0);
+    REQUIRE(s.sample<uchar>(img, PointType(0.5, 1.5)) == 128);
+    REQUIRE(s.sample<uchar>(img, PointType(1.5, 0.5)) == 64);
+    REQUIRE(s.sample<uchar>(img, PointType(1.5, 1.5)) == 192);
     
     // Off-centers
-    REQUIRE(s.sample<uchar>(img, cv::Point2f(1.0, 0.5)) == 0);
-    REQUIRE(s.sample<uchar>(img, cv::Point2f(1.0, 1.0)) == 0);
-    REQUIRE(s.sample<uchar>(img, cv::Point2f(1.6f, 0.5)) == 64);
+    REQUIRE(s.sample<uchar>(img, PointType(1.0, 0.5)) == 0);
+    REQUIRE(s.sample<uchar>(img, PointType(1.0, 1.0)) == 0);
+    REQUIRE(s.sample<uchar>(img, PointType(1.6, 0.5)) == 64);
 
 }

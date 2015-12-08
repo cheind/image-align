@@ -39,16 +39,16 @@ TEST_CASE("warp-translational")
     p(1,0) = 5.f;
     w.setParameters(p);
     
-    cv::Point2f x(5.f, 5.f);
-    cv::Point2f wx = w(x);
+    W::Traits::PointType x(5.f, 5.f);
+    W::Traits::PointType wx = w(x);
     
-    REQUIRE(wx.x == 15.f);
-    REQUIRE(wx.y == 10.f);
+    REQUIRE(wx(0) == 15.f);
+    REQUIRE(wx(1) == 10.f);
     
     
     cv::Matx<float, 2, 2> j;
     j << 1, 0, 0, 1;
-    REQUIRE(cv::norm(w.jacobian(cv::Point2f(10,10)) - j) == Catch::Detail::Approx(0));
+    REQUIRE(cv::norm(w.jacobian(W::Traits::PointType(10,10)) - j) == Catch::Detail::Approx(0));
 }
 
 TEST_CASE("warp-euclidean")
@@ -70,18 +70,18 @@ TEST_CASE("warp-euclidean")
     p(2,0) = 3.1415f;
     w.setParameters(p);
     
-    cv::Point2f x(0.f, 0.f);
-    cv::Point2f wx = w(x);
+    W::Traits::PointType x(0.f, 0.f);
+    W::Traits::PointType wx = w(x);
     
-    REQUIRE(wx.x == 5.f);
-    REQUIRE(wx.y == 5.f);
+    REQUIRE(wx(0) == 5.f);
+    REQUIRE(wx(1) == 5.f);
     
     
-    x = cv::Point2f(10.f, 15.f);
+    x = W::Traits::PointType(10.f, 15.f);
     wx = w(x);
     
-    REQUIRE(wx.x == Catch::Detail::Approx(-10.f + 5.f).epsilon(0.01));
-    REQUIRE(wx.y == Catch::Detail::Approx(-15.f + 5.f).epsilon(0.01));
+    REQUIRE(wx(0) == Catch::Detail::Approx(-10.f + 5.f).epsilon(0.01));
+    REQUIRE(wx(1) == Catch::Detail::Approx(-15.f + 5.f).epsilon(0.01));
 }
 
 TEST_CASE("warp-similarity")
@@ -107,15 +107,15 @@ TEST_CASE("warp-similarity")
     
     w.setParametersInCanonicalRepresentation(W::Traits::ParamType(5.f, 5.f, 3.1415f, 2.f));
     
-    cv::Point2f x(0.f, 0.f);
-    cv::Point2f wx = w(x);
+    W::Traits::PointType x(0.f, 0.f);
+    W::Traits::PointType wx = w(x);
     
-    REQUIRE(wx.x == 5.f);
-    REQUIRE(wx.y == 5.f);
+    REQUIRE(wx(0) == 5.f);
+    REQUIRE(wx(1) == 5.f);
     
-    x = cv::Point2f(10.f, 15.f);
+    x = W::Traits::PointType(10.f, 15.f);
     wx = w(x);
     
-    REQUIRE(wx.x == Catch::Detail::Approx(-20.f + 5.f).epsilon(0.01));
-    REQUIRE(wx.y == Catch::Detail::Approx(-30.f + 5.f).epsilon(0.01));
+    REQUIRE(wx(0) == Catch::Detail::Approx(-20.f + 5.f).epsilon(0.01));
+    REQUIRE(wx(1) == Catch::Detail::Approx(-30.f + 5.f).epsilon(0.01));
 }

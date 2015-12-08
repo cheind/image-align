@@ -58,11 +58,11 @@ namespace imagealign {
         /**
             Bilinear sampling at image coordinates.
          */
-        template<class ChannelType>
-        inline ChannelType sample(const cv::Mat &img, float x, float y) const
+        template<class ChannelType, class Scalar>
+        inline ChannelType sample(const cv::Mat &img, Scalar x, Scalar y) const
         {
-            x -= 0.5f;
-            y -= 0.5f;
+            x -= Scalar(0.5);
+            y -= Scalar(0.5);
             
             const int ix = static_cast<int>(std::floor(x));
             const int iy = static_cast<int>(std::floor(y));
@@ -72,25 +72,25 @@ namespace imagealign {
             int y0 = cv::borderInterpolate(iy, img.rows, cv::BORDER_REFLECT_101);
             int y1 = cv::borderInterpolate(iy + 1, img.rows, cv::BORDER_REFLECT_101);
             
-            float a = x - (float)ix;
-            float b = y - (float)iy;
+            Scalar a = x - (Scalar)ix;
+            Scalar b = y - (Scalar)iy;
             
             const ChannelType f0 = img.at<ChannelType>(y0, x0);
             const ChannelType f1 = img.at<ChannelType>(y0, x1);
             const ChannelType f2 = img.at<ChannelType>(y1, x0);
             const ChannelType f3 = img.at<ChannelType>(y1, x1);
             
-            return cv::saturate_cast<ChannelType>((f0 * (float(1) - a) + f1 * a) * (float(1) - b) +
-                                                  (f2 * (float(1) - a) + f3 * a) * b);
+            return cv::saturate_cast<ChannelType>((f0 * (Scalar(1) - a) + f1 * a) * (Scalar(1) - b) +
+                                                  (f2 * (Scalar(1) - a) + f3 * a) * b);
         }
         
         /**
             Bilinear sampling at image coordinates.
          */
-        template<class ChannelType>
-        inline ChannelType sample(const cv::Mat &img, const cv::Point2f &p) const
+        template<class ChannelType, class Scalar>
+        inline ChannelType sample(const cv::Mat &img, const cv::Matx<Scalar, 2, 1> &p) const
         {
-            return sample<ChannelType>(img, p.x, p.y);
+            return sample<ChannelType>(img, p(0), p(1));
         }
     };
     
@@ -107,11 +107,11 @@ namespace imagealign {
         /**
             Nearest sampling at image coordinates.
          */
-        template<class ChannelType>
-        inline ChannelType sample(const cv::Mat &img, float x, float y) const
+        template<class ChannelType, class Scalar>
+        inline ChannelType sample(const cv::Mat &img, Scalar x, Scalar y) const
         {
-            x -= 0.5f;
-            y -= 0.5f;
+            x -= Scalar(0.5);
+            y -= Scalar(0.5);
             
             const int ix = static_cast<int>(std::floor(x));
             const int iy = static_cast<int>(std::floor(y));
@@ -125,10 +125,10 @@ namespace imagealign {
         /**
             Nearest sampling at image coordinates.
          */
-        template<class ChannelType>
-        inline ChannelType sample(const cv::Mat &img, const cv::Point2f &p) const
+        template<class ChannelType, class Scalar>
+        inline ChannelType sample(const cv::Mat &img, const cv::Matx<Scalar, 2, 1> &p) const
         {
-            return sample<ChannelType>(img, p.x, p.y);
+            return sample<ChannelType>(img, p(0), p(1));
         }
     };
 }

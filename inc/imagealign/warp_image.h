@@ -46,6 +46,8 @@ namespace imagealign {
     {
         CV_Assert(src_.channels() == 1);
         
+        typedef typename Warp<WarpType, Scalar>::Traits::PointType PointType;
+        
         dst_.create(dstSize, src_.type());
         
         cv::Mat src = src_.getMat();
@@ -55,7 +57,7 @@ namespace imagealign {
             ChannelType *r = dst.ptr<ChannelType>(y);
             
             for (int x = 0; x < dstSize.width; ++x) {
-                cv::Point2f wp = w(cv::Point2f(x + 0.5f, y + 0.5f));
+                PointType wp = w(PointType(x + 0.5f, y + 0.5f));
                 r[x] = s.template sample<ChannelType>(src, wp);
             }
         }
@@ -83,6 +85,8 @@ namespace imagealign {
     {
         CV_Assert(src_.channels() == 1);
         
+        typedef typename Warp<WarpType, Scalar>::Traits::PointType PointType;
+        
         dst_.create(dstSize, src_.type());
         
         cv::Mat src = src_.getMat();
@@ -92,7 +96,7 @@ namespace imagealign {
             ChannelType *r = dst.ptr<ChannelType>(y);
             
             for (int x = 0; x < dstSize.width; ++x) {
-                cv::Point2f wp = w(cv::Point2f(x + 0.5f, y + 0.5f) * scaleUp) * scaleDown;
+                PointType wp = w(PointType(x + 0.5f, y + 0.5f) * scaleUp) * scaleDown;
                 r[x] = s.template sample<ChannelType>(src, wp);
             }
         }

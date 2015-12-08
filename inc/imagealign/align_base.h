@@ -60,6 +60,7 @@ namespace imagealign {
     public:
         
         typedef AlignBase<D, W> SelfType;
+        typedef typename W::Traits::ScalarType ScalarType;
         
         /** 
             Prepare for alignment.
@@ -134,7 +135,7 @@ namespace imagealign {
             \param maxIterations Stops after maxIterations have been performed.
             \param eps Minimum norm of last increment.
          */
-        SelfType &align(W &w, int maxIterations, float eps)
+        SelfType &align(W &w, int maxIterations, ScalarType eps)
         {
             
             align(w);
@@ -173,7 +174,7 @@ namespace imagealign {
                 this->setLevel(i);
                 
                 int iter = 0;
-                while (iter++ < maxIterationsPerLevel[i] && this->errorChange() > 0.f) {
+                while (iter++ < maxIterationsPerLevel[i] && this->errorChange() > ScalarType(0)) {
                     this->align(w);
                 }
             }
@@ -191,9 +192,9 @@ namespace imagealign {
             _level = level;
             
             // Errors between levels are not compatible.
-            _error = std::numeric_limits<float>::max();
-            _errorChange = std::numeric_limits<float>::max();
-            _scaleFactorToOriginal = std::pow(2.f, (float)totalLevels - _level - 1);
+            _error = std::numeric_limits<ScalarType>::max();
+            _errorChange = std::numeric_limits<ScalarType>::max();
+            _scaleFactorToOriginal = std::pow(2.f, (ScalarType)totalLevels - _level - 1);
             _scaleFactorFromOriginal = 1.f / _scaleFactorToOriginal;
             
             return *this;
@@ -218,7 +219,7 @@ namespace imagealign {
          
             \return the error value corresponding to last invocation of align.
         */
-        float lastError() const {
+        ScalarType lastError() const {
             return _error;
         }
         
@@ -231,7 +232,7 @@ namespace imagealign {
          
             \return the error change.
          */
-        float errorChange() const {
+        ScalarType errorChange() const {
             return _errorChange;
         }
         
@@ -254,7 +255,9 @@ namespace imagealign {
         
     protected:
         
-        void setLastError(float err) {
+        typedef typename W::Traits::PointType PointType;
+        
+        void setLastError(ScalarType err) {
             _errorChange = _error - err;
             _error = err;
         }
@@ -279,21 +282,21 @@ namespace imagealign {
             return _targetPyramid;
         }
         
-        inline cv::Point2f scaleUp(const cv::Point2f x) const
+        inline PointType scaleUp(const PointType x) const
         {
             return x * _scaleFactorToOriginal;
         }
         
-        inline cv::Point2f scaleDown(const cv::Point2f x) const
+        inline PointType scaleDown(const PointType x) const
         {
             return x * _scaleFactorFromOriginal;
         }
         
-        float scaleUpFactor() const {
+        ScalarType scaleUpFactor() const {
             return _scaleFactorToOriginal;
         }
         
-        float scaleDownFactor() const {
+        ScalarType scaleDownFactor() const {
             return _scaleFactorFromOriginal;
         }
 
@@ -306,10 +309,10 @@ namespace imagealign {
         int _levels;
         int _level;
         int _iter;
-        float _error;
-        float _errorChange;
-        float _scaleFactorToOriginal;
-        float _scaleFactorFromOriginal;
+        ScalarType _error;
+        ScalarType _errorChange;
+        ScalarType _scaleFactorToOriginal;
+        ScalarType _scaleFactorFromOriginal;
         typename W::Traits::ParamType _inc;
     };
     
