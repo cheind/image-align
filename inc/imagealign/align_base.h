@@ -72,7 +72,7 @@ namespace imagealign {
             \param target Single channel target image to align template with.
             \param pyramidLevels Maximum number of pyramid levels to generate.
          */
-        void prepare(cv::InputArray tmpl, cv::InputArray target, int pyramidLevels)
+        void prepare(cv::InputArray tmpl, cv::InputArray target, const W &warp, int pyramidLevels)
         {
             // Do the basic thing everyone needs
             CV_Assert(tmpl.channels() == 1);
@@ -101,7 +101,7 @@ namespace imagealign {
             setLevel(0);
             
             // Invoke prepare of derived
-            static_cast<D*>(this)->prepareImpl();
+            static_cast<D*>(this)->prepareImpl(warp);
         }
         
         /** 

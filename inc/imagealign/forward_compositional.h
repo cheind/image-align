@@ -86,10 +86,10 @@ namespace imagealign {
          
             In the forward compositional algorithm only the Jacobian of the warp can be precomputed.
          */
-        void prepareImpl()
+        void prepareImpl(const W &w)
         {
-            W w;
-            w.setIdentity();
+            W w0(w);
+            w0.setIdentity();
             
             _jacobianPyramid.resize(this->numLevels());
             
@@ -103,7 +103,7 @@ namespace imagealign {
                 int idx = 0;
                 for (int y = 1; y < s.height - 1; ++y) {
                     for (int x = 1; x < s.width - 1; ++x, ++idx) {
-                        _jacobianPyramid[i][idx] = w.jacobian(PointType(x + ScalarType(0.5), y + ScalarType(0.5)) * sUp);
+                        _jacobianPyramid[i][idx] = w0.jacobian(PointType(x + ScalarType(0.5), y + ScalarType(0.5)) * sUp);
                     }
                 }
             }

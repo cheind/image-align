@@ -35,11 +35,11 @@ TEST_CASE("forward-additive")
     
     cv::Mat tmpl = target(cv::Rect(20, 20, 10, 10));
     
-    AlignType al;
-    al.prepare(tmpl, target, 1);
-    
     W w;
     w.setParameters(W::Traits::ParamType(15, 15));
+    
+    AlignType al;
+    al.prepare(tmpl, target, w, 1);
     
     al.align(w, 100, 0.001f);
     
@@ -78,7 +78,7 @@ TEST_CASE("forward-additive-euclidean")
     w.setParameters(real + r);
     
     AlignType al;
-    al.prepare(tmpl, target, 1);
+    al.prepare(tmpl, target, w, 1);
     al.align(w, 100, 0.001f);
     
     REQUIRE(al.iteration() < 100);
@@ -118,7 +118,7 @@ TEST_CASE("forward-additive-similarity")
     w.setParametersInCanonicalRepresentation(real + r);
     
     AlignType al;
-    al.prepare(tmpl, target, 2);
+    al.prepare(tmpl, target, w, 2);
     const int iterations[] = { 50, 50 };
     al.align(w, iterations);
     

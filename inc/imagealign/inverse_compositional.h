@@ -84,10 +84,10 @@ namespace imagealign {
          
             In the forward compositional algorithm only the Jacobian of the warp can be precomputed.
          */
-        void prepareImpl()
+        void prepareImpl(const W &w)
         {
-            W w;
-            w.setIdentity();
+            W w0(w);
+            w0.setIdentity();
             
             _sdiPyramid.resize(this->numLevels());
             _invHessians.resize(this->numLevels());
@@ -113,7 +113,7 @@ namespace imagealign {
                         // 2. Evaluate the Jacobian of image location.
                         // Note: Jacobians are computed with pixel positions corresponding
                         // to the finest pyramid level.
-                        JacobianType jacobian = w.jacobian(p * scale);
+                        JacobianType jacobian = w0.jacobian(p * scale);
                         
                         // 3. Compute steepest descent images
                         PixelSDIType sdi = grad * jacobian;

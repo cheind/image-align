@@ -166,7 +166,7 @@ int main(int argc, char **argv)
         
         const int levels = 3;
         AlignType at;
-        at.prepare(tpl, target, levels);
+        at.prepare(tpl, target, w, levels);
         
         int iterationsPerLevel[] = {5, 10, 5};
         int iterationsPerformed[] = {0, 0, 0};

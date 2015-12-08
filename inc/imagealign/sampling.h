@@ -26,23 +26,37 @@
 
 namespace imagealign {
     
+    /**
+        Generic interface for sampling methods
+     
+        \tparam SampleMethod Method to be applied to read image value.
+    */
     template<int SampleMethod>
     class Sampler {
     public:
+        
+        /**
+            Be able to sample image at location.
+         
+            \param img Image to sample. Assumed to be single channel.
+        */
         template<class ChannelType>
         inline ChannelType sample(const cv::Mat &img, float x, float y) const;
         
+        /**
+            Be able to sample image at location.
+         
+            \param img Image to sample. Assumed to be single channel.
+         */
         template<class ChannelType>
         inline ChannelType sample(const cv::Mat &img, const cv::Point2f &p) const;
     };
+    
     
     /** Perform bilinear sampling. */
     const int SAMPLE_BILINEAR = 0;
     /** Perform nearest neighbor sampling. */
     const int SAMPLE_NEAREST = 1;
-    
-    
-    
     
     
     /**

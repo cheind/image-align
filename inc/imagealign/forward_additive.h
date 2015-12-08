@@ -70,7 +70,7 @@ namespace imagealign {
             why this algorithm is not the fastest. The only thing that could be calculated
             beforehand are the gradients of the target image.
          */
-        void prepareImpl()
+        void prepareImpl(const W &w)
         {
             // Nothing todo here. Gradient is computed on the fly.
         }
