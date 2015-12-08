@@ -56,7 +56,6 @@ namespace imagealign {
             
             // By convention: coarser levels are lower numbers.
             std::reverse(_pyr.begin(), _pyr.end());
-
         }
         
         /**
@@ -71,6 +70,19 @@ namespace imagealign {
          */
         cv::Mat operator[](size_t level) const {
             return _pyr[level];
+        }
+        
+        /** 
+            Return the maximum number of levels for image size.
+        */
+        static int maxLevelsForImageSize(cv::Size s) {
+            int level = 0;
+            while (s.width >= 10 && s.height >= 10) {
+                s.width /= 2;
+                s.height /= 2;
+                ++level;
+            }
+            return level;
         }
         
     private:
