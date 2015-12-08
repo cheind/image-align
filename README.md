@@ -36,15 +36,17 @@ User defined warp functions can be easily added.
 #include <imagealign/imagealign.h>
 ```
 
-Next, declare the type of warp and alignment strategy you wish to use
+Next, declare the type and precision of warp, and an alignment algorithm you wish to use
 
 ```C++
 namespace ia = imagealign;
 
-const int WarpMode = ia::WARP_SIMILARITY;
+// Use a double precision warp that descibres a similarity motion
+// (rotation, translation and uniform scale).
+typedef ia::WarpSimilarityD WarpType;
 
-typedef ia::Warp<WarpMode> WarpType;
-typedef ia::AlignInverseCompositional<WarpMode> AlignType;
+// Use Inverse Compositional Algorithm with the warp.
+typedef ia::AlignInverseCompositional<WarpType> AlignType;
 ```
 
 Given a template image and a target image you can now perform alignment
