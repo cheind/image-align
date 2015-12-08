@@ -121,14 +121,14 @@ namespace imagealign {
             // Computing the gradient happens on the warped image. Since evaluating the
             // the gradient in both directions takes 4 bilinear lookups, we are better off
             // warping the entire target image explicitely here.
-            warpImage<float>(target, _warpedTargetImage, tpl.size(), w, this->scaleUpFactor(), this->scaleDownFactor());
+            warpImage<float, SAMPLE_BILINEAR>(target, _warpedTargetImage, tpl.size(), w, this->scaleUpFactor(), this->scaleDownFactor());
             
             HessianType hessian = HessianType::zeros();
             ParamType b = ParamType::zeros();
             
             Sampler<SAMPLE_NEAREST> s;
 
-            float sumErrors = 0.f;
+            ScalarType sumErrors = 0;
             
             for (int y = 0; y < tpl.rows; ++y) {
                 
@@ -141,14 +141,14 @@ namespace imagealign {
                     const float templateIntensity = tplRow[x];
                     
                     // 1. Lookup the target intensity using the already back warped image.
-                    const float targetIntensity = s.sample(_warpedTargetImage, ptpl);
+                    const float targetIntensity = s.sample<float>(_warpedTargetImage, ptpl);
                     
                     // 2. Compute the error
                     const float err = templateIntensity - targetIntensity;
-                    sumErrors += err * err;
+                    sumErrors += ScalarType(err * err);
                     
                     // 3. Compute the target gradient on the warped image
-                    const cv::Matx<float, 1, 2> grad = gradient<float, SAMPLE_NEAREST>(_warpedTargetImage, ptpl);
+                    const cv::Matx<ScalarType, 1, 2> grad = gradient<float, SAMPLE_NEAREST>(_warpedTargetImage, ptpl);
                     
                     // 4. Lookup the prec-computed Jacobian for the template pixel position corresponding to finest level.
                     const JacobianType &jacobian = _jacobians[idxRowOrig + x * pixelScaleUp];

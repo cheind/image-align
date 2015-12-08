@@ -107,7 +107,7 @@ namespace imagealign {
                         PointType p(x + ScalarType(0.5), y + ScalarType(0.5));
                         
                         // 1. Compute the gradient of the template
-                        const cv::Matx<float, 1, 2> grad = gradient<float, SAMPLE_NEAREST>(tpl, p);
+                        const cv::Matx<ScalarType, 1, 2> grad = gradient<float, SAMPLE_NEAREST>(tpl, p);
                         
                         // 2. Evaluate the Jacobian of image location.
                         // Note: Jacobians are computed with pixel positions corresponding
@@ -148,7 +148,7 @@ namespace imagealign {
             
             Sampler<SAMPLE_BILINEAR> s;
 
-            float sumErrors = 0.f;
+            ScalarType sumErrors = 0;
             int idx = 0;
             for (int y = 0; y < tpl.rows; ++y) {
                 
@@ -164,7 +164,7 @@ namespace imagealign {
                     
                     // 2. Compute the error. Roles reverse compared to forward additive / compositional
                     const float err = targetIntensity - templateIntensity;
-                    sumErrors += err * err;
+                    sumErrors += ScalarType(err * err);
                     
                     // 3. Update b using SDI lookup
                     b += _sdiPyramid[this->level()][idx].t() * err;

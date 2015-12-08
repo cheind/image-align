@@ -27,62 +27,68 @@ IA_DISABLE_PRAGMA_WARN_END
 
 namespace ia = imagealign;
 
-void initializeWarp(cv::Size templateSize, cv::Size targetSize, ia::Warp<ia::WARP_TRANSLATION, float> &w) {
-    ia::WarpTraits<ia::WARP_TRANSLATION, float>::ParamType params;
-    params(0,0) = cv::theRNG().uniform(0.f, (float)(targetSize.width - templateSize.width));
-    params(1,0) = cv::theRNG().uniform(0.f, (float)(targetSize.height - templateSize.height));
+template<class Scalar>
+void initializeWarp(cv::Size templateSize, cv::Size targetSize, ia::Warp<ia::WARP_TRANSLATION, Scalar> &w) {
+    typename ia::WarpTraits<ia::WARP_TRANSLATION, Scalar>::ParamType params;
+    params(0,0) = cv::theRNG().uniform(Scalar(0), (Scalar)(targetSize.width - templateSize.width));
+    params(1,0) = cv::theRNG().uniform(Scalar(0), (Scalar)(targetSize.height - templateSize.height));
     
     w.setParameters(params);
 }
 
-void perturbateWarp(ia::Warp<ia::WARP_TRANSLATION, float> &w) {
+template<class Scalar>
+void perturbateWarp(ia::Warp<ia::WARP_TRANSLATION, Scalar> &w) {
     
-    ia::WarpTraits<ia::WARP_TRANSLATION, float>::ParamType params = w.parameters();
-    params(0,0) += (float)cv::theRNG().gaussian(8.f);
-    params(1,0) += (float)cv::theRNG().gaussian(8.f);
-    
-    w.setParameters(params);
-}
-
-void initializeWarp(cv::Size templateSize, cv::Size targetSize, ia::Warp<ia::WARP_EUCLIDEAN, float> &w) {
-    ia::WarpTraits<ia::WARP_EUCLIDEAN, float>::ParamType params;
-    params(0,0) = cv::theRNG().uniform(0.f, (float)(targetSize.width - templateSize.width));
-    params(1,0) = cv::theRNG().uniform(0.f, (float)(targetSize.height - templateSize.height));
-    params(2,0) = cv::theRNG().uniform(0.f, 3.1415f * 0.5f);
+    typename ia::WarpTraits<ia::WARP_TRANSLATION, Scalar>::ParamType params = w.parameters();
+    params(0,0) += (Scalar)cv::theRNG().gaussian(Scalar(8));
+    params(1,0) += (Scalar)cv::theRNG().gaussian(Scalar(8));
     
     w.setParameters(params);
 }
 
-void perturbateWarp(ia::Warp<ia::WARP_EUCLIDEAN, float> &w) {
-    
-    ia::WarpTraits<ia::WARP_EUCLIDEAN, float>::ParamType params = w.parameters();
-    params(0,0) += (float)cv::theRNG().gaussian(8.f);
-    params(1,0) += (float)cv::theRNG().gaussian(8.f);
-    params(2,0) += (float)cv::theRNG().gaussian(0.2f);
+template<class Scalar>
+void initializeWarp(cv::Size templateSize, cv::Size targetSize, ia::Warp<ia::WARP_EUCLIDEAN, Scalar> &w) {
+    typename ia::WarpTraits<ia::WARP_EUCLIDEAN, Scalar>::ParamType params;
+    params(0,0) = cv::theRNG().uniform(Scalar(0), (Scalar)(targetSize.width - templateSize.width));
+    params(1,0) = cv::theRNG().uniform(Scalar(0), (Scalar)(targetSize.height - templateSize.height));
+    params(2,0) = cv::theRNG().uniform(Scalar(0), Scalar(3.1415 * 0.5));
     
     w.setParameters(params);
 }
 
-void initializeWarp(cv::Size templateSize, cv::Size targetSize, ia::Warp<ia::WARP_SIMILARITY, float> &w) {
-    ia::WarpTraits<ia::WARP_SIMILARITY, float>::ParamType params;
+template<class Scalar>
+void perturbateWarp(ia::Warp<ia::WARP_EUCLIDEAN, Scalar> &w) {
     
-    params(0,0) = (float)cv::theRNG().uniform(0.f, (float)(targetSize.width - templateSize.width));
-    params(1,0) = (float)cv::theRNG().uniform(0.f, (float)(targetSize.height - templateSize.height));
-    params(2,0) = (float)cv::theRNG().uniform(0.f, 3.1415f * 0.5f);
-    params(3,0) = (float)cv::theRNG().uniform(0.5f, 1.5f);
+    typename ia::WarpTraits<ia::WARP_EUCLIDEAN, Scalar>::ParamType params = w.parameters();
+    params(0,0) += (Scalar)cv::theRNG().gaussian(Scalar(8));
+    params(1,0) += (Scalar)cv::theRNG().gaussian(Scalar(8));
+    params(2,0) += (Scalar)cv::theRNG().gaussian(Scalar(0.2));
+    
+    w.setParameters(params);
+}
+
+template<class Scalar>
+void initializeWarp(cv::Size templateSize, cv::Size targetSize, ia::Warp<ia::WARP_SIMILARITY, Scalar> &w) {
+    typename ia::WarpTraits<ia::WARP_SIMILARITY, Scalar>::ParamType params;
+    
+    params(0,0) = (Scalar)cv::theRNG().uniform(Scalar(0), (Scalar)(targetSize.width - templateSize.width));
+    params(1,0) = (Scalar)cv::theRNG().uniform(Scalar(0), (Scalar)(targetSize.height - templateSize.height));
+    params(2,0) = (Scalar)cv::theRNG().uniform(Scalar(0), Scalar(3.1415 * 0.5));
+    params(3,0) = (Scalar)cv::theRNG().uniform(Scalar(0.5), Scalar(1.5));
     
     w.setParametersInCanonicalRepresentation(params);
 }
 
-void perturbateWarp(ia::Warp<ia::WARP_SIMILARITY, float> &w) {
+template<class Scalar>
+void perturbateWarp(ia::Warp<ia::WARP_SIMILARITY, Scalar> &w) {
     
     // Note parameters are tx, ty, a and b. So we rather use the canoncial form
-    ia::WarpTraits<ia::WARP_SIMILARITY, float>::ParamType params = w.parametersInCanonicalRepresentation();
+    typename ia::WarpTraits<ia::WARP_SIMILARITY, Scalar>::ParamType params = w.parametersInCanonicalRepresentation();
     
-    params(0,0) += (float)cv::theRNG().gaussian(3.f);
-    params(1,0) += (float)cv::theRNG().gaussian(3.f);
-    params(2,0) += (float)cv::theRNG().gaussian(0.2f);
-    params(3,0) += (float)cv::theRNG().gaussian(0.05f);
+    params(0,0) += (Scalar)cv::theRNG().gaussian(Scalar(3));
+    params(1,0) += (Scalar)cv::theRNG().gaussian(Scalar(3));
+    params(2,0) += (Scalar)cv::theRNG().gaussian(Scalar(0.2));
+    params(3,0) += (Scalar)cv::theRNG().gaussian(Scalar(0.05));
     
     w.setParametersInCanonicalRepresentation(params);
 }
@@ -92,15 +98,15 @@ cv::Point_<Scalar> toP(const cv::Matx<Scalar, 2, 1> &p) {
     return cv::Point_<Scalar>(p(0), p(1));
 }
 
-template<int WarpType>
-void drawRectOfTemplate(cv::Mat &img, const ia::Warp<WarpType, float> &w, cv::Size tplSize, cv::Scalar color)
+template<int WarpType, class Scalar>
+void drawRectOfTemplate(cv::Mat &img, const ia::Warp<WarpType, Scalar> &w, cv::Size tplSize, cv::Scalar color)
 {
-    typedef typename ia::WarpTraits<WarpType, float>::PointType PointType;
+    typedef typename ia::WarpTraits<WarpType, Scalar>::PointType PointType;
     
-    PointType c0 = w(PointType(0.5f, 0.5f));
-    PointType c1 = w(PointType(0.5f + tplSize.width, 0.5f));
-    PointType c2 = w(PointType(0.5f + tplSize.width, 0.5f + tplSize.height));
-    PointType c3 = w(PointType(0.5f, 0.5f + tplSize.height));
+    PointType c0 = w(PointType(Scalar(0.5), Scalar(0.5)));
+    PointType c1 = w(PointType(Scalar(0.5) + tplSize.width, Scalar(0.5)));
+    PointType c2 = w(PointType(Scalar(0.5) + tplSize.width, Scalar(0.5) + tplSize.height));
+    PointType c3 = w(PointType(Scalar(0.5), Scalar(0.5) + tplSize.height));
     
     cv::line(img, toP(c0), toP(c1), color, 1, CV_AA);
     cv::line(img, toP(c1), toP(c2), color, 1, CV_AA);
@@ -112,15 +118,16 @@ int main(int argc, char **argv)
 {
     
     // Choose a warp
-    typedef ia::WarpSimilarityF WarpType;
+    typedef ia::WarpTranslationD WarpType;
     
     // Choose an alignment strategy
     typedef ia::AlignInverseCompositional<WarpType> AlignType;
-    // typedef ia::AlignForwardAdditive<ia::WARP_SIMILARITY> AlignType;
-    // typedef ia::AlignForwardCompositional<ia::WARP_SIMILARITY> AlignType;
+    // typedef ia::AlignForwardAdditive<WarpType> AlignType;
+    // typedef ia::AlignForwardCompositional<WarpType> AlignType;
     
     
-    cv::theRNG().state = cv::getTickCount();
+    //cv::theRNG().state = cv::getTickCount();
+    cv::theRNG().state = 100;
     
     cv::Mat target;
     
@@ -158,7 +165,7 @@ int main(int argc, char **argv)
         std::vector<WarpType> incrementals;
         incrementals.push_back(w);
         
-        const int levels = 3;
+        const int levels = 1;
         AlignType at;
         at.prepare(tpl, target, levels);
         
@@ -167,12 +174,12 @@ int main(int argc, char **argv)
         
         int64 e1 = cv::getTickCount();
         
-        for (int i = 0; i < levels; ++i) {
+        for (int i = 0; i < 1; ++i) {
             at.setLevel(i);
             
-            while (iterationsPerformed[i] < iterationsPerLevel[i] &&
-                   at.errorChange() > 0.f &&
-                   (iterationsPerformed[i] == 0 || cv::norm(at.lastIncrement()) > 0.01f))
+            while (iterationsPerformed[i] < iterationsPerLevel[i])
+                   //at.errorChange() > 0.f &&
+                   //(iterationsPerformed[i] == 0 || cv::norm(at.lastIncrement()) > 0.01f))
             {
                 at.align(w);
                 incrementals.push_back(w);

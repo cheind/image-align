@@ -93,7 +93,7 @@ namespace imagealign {
             HessianType hessian = HessianType::zeros();
             ParamType b = ParamType::zeros();
 
-            float sumErrors = 0.f;
+            ScalarType sumErrors = 0;
             
             for (int y = 0; y < tpl.rows; ++y) {
                 
@@ -111,10 +111,10 @@ namespace imagealign {
                     
                     // 2. Compute the error
                     const float err = templateIntensity - targetIntensity;
-                    sumErrors += err * err;
+                    sumErrors += ScalarType(err * err);
                     
                     // 3. Compute the target gradient warped back
-                    const cv::Matx<float, 1, 2> grad = gradient<float, SAMPLE_BILINEAR>(target, ptgt);
+                    const cv::Matx<ScalarType, 1, 2> grad = gradient<float, SAMPLE_BILINEAR>(target, ptgt);
                     
                     // 4. Compute the jacobian for the template pixel position
                     JacobianType jacobian = w.jacobian(ptplOrig);
