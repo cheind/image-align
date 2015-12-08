@@ -90,8 +90,8 @@ To build from source
  1. Click CMake Generate
  
 Although **Image Alignment** should build across multiple platforms and architectures, tests are carried out on these systems
- - Windows 8/10 MSVC10 x86
- - OS X 10.10 XCode 7.x
+ - Windows 8/10 MSVC10 x64
+ - OS X 10.10 XCode 7.x x64
 
 If the build should fail for a specific platform, don't hesitate to create an issue. 
 
