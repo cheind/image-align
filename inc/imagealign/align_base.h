@@ -23,7 +23,6 @@
 #include <imagealign/warp.h>
 #include <imagealign/config.h>
 #include <imagealign/image_pyramid.h>
-#include <iostream>
 
 
 namespace imagealign {
@@ -73,8 +72,6 @@ namespace imagealign {
             // Do the basic thing everyone needs
             CV_Assert(tmpl.channels() == 1);
             CV_Assert(target.channels() == 1);
-            
-            std::cout << ImagePyramid::maxLevelsForImageSize(tmpl.size()) << " " << ImagePyramid::maxLevelsForImageSize(target.size()) << std::endl;
             
             // Sanitize levels
             int maxLevels = std::min<int>(ImagePyramid::maxLevelsForImageSize(tmpl.size()),
