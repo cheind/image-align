@@ -93,17 +93,18 @@ namespace imagealign {
             _invHessians.resize(this->numLevels());
             
             for (int i = 0; i < this->numLevels(); ++i) {
-                float scale = this->scaleUpFactor();
+                float scale = this->scaleUpFactor(i);
                 
                 cv::Mat tpl = this->templateImagePyramid()[i];
+                cv::Size s = tpl.size();
                 
-                _sdiPyramid[i].resize(tpl.size().area());
+                _sdiPyramid[i].resize((s.width-2) * (s.height-2));
                 
                 HessianType hessian = HessianType::zeros();
                 
                 int idx = 0;
-                for (int y = 0; y < tpl.rows; ++y) {
-                    for (int x = 0; x < tpl.cols; ++x, ++idx) {
+                for (int y = 1; y < tpl.rows - 1 ; ++y) {
+                    for (int x = 1; x < tpl.cols - 1; ++x, ++idx) {
                         PointType p(x + ScalarType(0.5), y + ScalarType(0.5));
                         
                         // 1. Compute the gradient of the template
@@ -144,27 +145,36 @@ namespace imagealign {
             cv::Mat tpl = this->templateImage();
             cv::Mat target = this->targetImage();
             
-            ParamType b = ParamType::zeros();
+            const ScalarType sUp = this->scaleUpFactor(this->level());
+            const ScalarType sDown = ScalarType(1) / sUp;
             
             Sampler<SAMPLE_BILINEAR> s;
-
+            
+            ParamType b = ParamType::zeros();
             ScalarType sumErrors = 0;
+            int sumConstraints = 0;
+            
             int idx = 0;
-            for (int y = 0; y < tpl.rows; ++y) {
+            for (int y = 1; y < tpl.rows - 1; ++y) {
                 
                 const float *tplRow = tpl.ptr<float>(y);
                 
-                for (int x = 0; x < tpl.cols; ++x, ++idx) {
+                for (int x = 1; x < tpl.cols - 1; ++x, ++idx) {
                     PointType ptpl(x + ScalarType(0.5), y + ScalarType(0.5));
                     const float templateIntensity = tplRow[x];
                     
                     // 1. Warp target pixel back to template using w
-                    PointType ptgt = this->scaleDown(w(this->scaleUp(ptpl)));
+                    PointType ptgt = w(ptpl * sUp) * sDown;
+                    
+                    if (!this->isInImage(ptgt, target.size(), 1))
+                        continue;
+                    
                     const float targetIntensity = s.sample<float>(target, ptgt);
                     
                     // 2. Compute the error. Roles reverse compared to forward additive / compositional
                     const float err = targetIntensity - templateIntensity;
                     sumErrors += ScalarType(err * err);
+                    sumConstraints += 1;
                     
                     // 3. Update b using SDI lookup
                     b += _sdiPyramid[this->level()][idx].t() * err;
@@ -177,7 +187,7 @@ namespace imagealign {
             // 5. Inverse compositional update of warp parameters.
             w.updateInverseCompositional(delta);
             
-            this->setLastError(sumErrors / tpl.size().area());
+            this->setLastError(sumErrors / sumConstraints);
             this->setLastIncrement(delta);
         }
         

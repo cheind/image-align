@@ -187,15 +187,12 @@ namespace imagealign {
         */
         SelfType &setLevel(int level) {
             
-            const int totalLevels = (int)_templatePyramid.size();
-            level = std::max<int>(0, std::min<int>(level, totalLevels - 1));
+            level = std::max<int>(0, std::min<int>(level, _levels - 1));
             _level = level;
             
             // Errors between levels are not compatible.
             _error = std::numeric_limits<ScalarType>::max();
             _errorChange = std::numeric_limits<ScalarType>::max();
-            _scaleFactorToOriginal = std::pow(2.f, (ScalarType)totalLevels - _level - 1);
-            _scaleFactorFromOriginal = 1.f / _scaleFactorToOriginal;
             
             return *this;
         }
@@ -282,22 +279,29 @@ namespace imagealign {
             return _targetPyramid;
         }
         
-        inline PointType scaleUp(const PointType x) const
-        {
-            return x * _scaleFactorToOriginal;
+        ScalarType scaleUpFactor(int level) const {
+            return std::pow(ScalarType(2), (ScalarType)_levels - level - 1);
         }
         
-        inline PointType scaleDown(const PointType x) const
-        {
-            return x * _scaleFactorFromOriginal;
+        ScalarType scaleDownFactor(int level) const {
+            return ScalarType(1) / this->scaleUpFactor(level);
         }
         
-        ScalarType scaleUpFactor() const {
-            return _scaleFactorToOriginal;
-        }
-        
-        ScalarType scaleDownFactor() const {
-            return _scaleFactorFromOriginal;
+        /**
+            Test if coordinates are in image.
+            
+            \param p Image coordinates
+            \param imgSize Size of image
+            \param r Minimum distance from image border pixels.
+        */
+        inline bool isInImage(const PointType &p, cv::Size imgSize, int r) const {
+            int x = (int)std::floor(p(0)-ScalarType(0.5));
+            int y = (int)std::floor(p(1)-ScalarType(0.5));
+            
+            return x >= r &&
+                   y >= r &&
+                   x < imgSize.width - r &&
+                   y < imgSize.height - r;
         }
 
         
@@ -311,8 +315,6 @@ namespace imagealign {
         int _iter;
         ScalarType _error;
         ScalarType _errorChange;
-        ScalarType _scaleFactorToOriginal;
-        ScalarType _scaleFactorFromOriginal;
         typename W::Traits::ParamType _inc;
     };
     

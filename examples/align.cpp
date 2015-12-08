@@ -118,16 +118,15 @@ int main(int argc, char **argv)
 {
     
     // Choose a warp
-    typedef ia::WarpTranslationD WarpType;
+    typedef ia::WarpSimilarityD WarpType;
     
     // Choose an alignment strategy
     typedef ia::AlignInverseCompositional<WarpType> AlignType;
-    // typedef ia::AlignForwardAdditive<WarpType> AlignType;
+    //typedef ia::AlignForwardAdditive<WarpType> AlignType;
     // typedef ia::AlignForwardCompositional<WarpType> AlignType;
     
     
-    //cv::theRNG().state = cv::getTickCount();
-    cv::theRNG().state = 100;
+    cv::theRNG().state = cv::getTickCount();
     
     cv::Mat target;
     
@@ -165,21 +164,21 @@ int main(int argc, char **argv)
         std::vector<WarpType> incrementals;
         incrementals.push_back(w);
         
-        const int levels = 1;
+        const int levels = 3;
         AlignType at;
         at.prepare(tpl, target, levels);
         
-        int iterationsPerLevel[] = {30, 30, 15};
+        int iterationsPerLevel[] = {5, 10, 5};
         int iterationsPerformed[] = {0, 0, 0};
         
         int64 e1 = cv::getTickCount();
         
-        for (int i = 0; i < 1; ++i) {
+        for (int i = 0; i < levels; ++i) {
             at.setLevel(i);
             
-            while (iterationsPerformed[i] < iterationsPerLevel[i])
-                   //at.errorChange() > 0.f &&
-                   //(iterationsPerformed[i] == 0 || cv::norm(at.lastIncrement()) > 0.01f))
+            while (iterationsPerformed[i] < iterationsPerLevel[i] &&
+                   at.errorChange() > 0.f &&
+                   (iterationsPerformed[i] == 0 || cv::norm(at.lastIncrement()) > 0.01f))
             {
                 at.align(w);
                 incrementals.push_back(w);

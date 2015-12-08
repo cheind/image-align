@@ -88,30 +88,39 @@ namespace imagealign {
             cv::Mat tpl = this->templateImage();
             cv::Mat target = this->targetImage();
             
+            const ScalarType sUp = this->scaleUpFactor(this->level());
+            const ScalarType sDown = ScalarType(1) / sUp;
+            
             Sampler<SAMPLE_BILINEAR> s;
             
             HessianType hessian = HessianType::zeros();
             ParamType b = ParamType::zeros();
 
             ScalarType sumErrors = 0;
+            int sumConstraints = 0;
             
-            for (int y = 0; y < tpl.rows; ++y) {
+            for (int y = 1; y < tpl.rows - 1; ++y) {
                 
                 const float *tplRow = tpl.ptr<float>(y);
                 
-                for (int x = 0; x < tpl.cols; ++x) {
+                for (int x = 1; x < tpl.cols - 1; ++x) {
                     PointType ptpl(x + ScalarType(0.5), y + ScalarType(0.5));
                     const float templateIntensity = tplRow[x];
                     
-                    PointType ptplOrig = this->scaleUp(ptpl);
+                    PointType ptplOrig = ptpl * sUp;
                     
                     // 1. Warp target pixel back to template using w
-                    PointType ptgt = this->scaleDown(w(ptplOrig));
+                    PointType ptgt = w(ptplOrig) * sDown;
+                    
+                    if (!this->isInImage(ptgt, target.size(), 1))
+                        continue;
+                    
                     const float targetIntensity = s.sample<float>(target, ptgt);
                     
                     // 2. Compute the error
                     const float err = templateIntensity - targetIntensity;
                     sumErrors += ScalarType(err * err);
+                    sumConstraints += 1;
                     
                     // 3. Compute the target gradient warped back
                     const cv::Matx<ScalarType, 1, 2> grad = gradient<float, SAMPLE_BILINEAR>(target, ptgt);
@@ -136,7 +145,7 @@ namespace imagealign {
             // 9. Additive update of warp parameters.
             w.updateForwardAdditive(delta);
             
-            this->setLastError(sumErrors / tpl.size().area());
+            this->setLastError(sumErrors / sumConstraints);
             this->setLastIncrement(delta);
         }
         

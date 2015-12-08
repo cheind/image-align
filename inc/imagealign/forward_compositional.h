@@ -91,14 +91,20 @@ namespace imagealign {
             W w;
             w.setIdentity();
             
-            // Computing jacobians only for finest pyramid level.
-            cv::Size s = this->templateImagePyramid().back().size();
-            _jacobians.resize(s.area());
+            _jacobianPyramid.resize(this->numLevels());
             
-            int idx = 0;
-            for (int y = 0; y < s.height; ++y) {
-                for (int x = 0; x < s.width; ++x, ++idx) {
-                    _jacobians[idx] = w.jacobian(PointType(x + ScalarType(0.5), y + ScalarType(0.5)));
+            for (int i = 0; i < this->numLevels(); ++i) {
+                float sUp = this->scaleUpFactor(i);
+
+                cv::Size s = this->templateImagePyramid()[i].size();
+            
+                _jacobianPyramid[i].resize((s.width-2) * (s.height-2));
+            
+                int idx = 0;
+                for (int y = 1; y < s.height - 1; ++y) {
+                    for (int x = 1; x < s.width - 1; ++x, ++idx) {
+                        _jacobianPyramid[i][idx] = w.jacobian(PointType(x + ScalarType(0.5), y + ScalarType(0.5)) * sUp);
+                    }
                 }
             }
         }
@@ -116,12 +122,13 @@ namespace imagealign {
             cv::Mat tpl = this->templateImage();
             cv::Mat target = this->targetImage();
             
-            int pixelScaleUp = (int)this->scaleUpFactor();
+            const ScalarType sUp = this->scaleUpFactor(this->level());
+            const ScalarType sDown = ScalarType(1) / sUp;
             
             // Computing the gradient happens on the warped image. Since evaluating the
             // the gradient in both directions takes 4 bilinear lookups, we are better off
             // warping the entire target image explicitely here.
-            warpImage<float, SAMPLE_BILINEAR>(target, _warpedTargetImage, tpl.size(), w, this->scaleUpFactor(), this->scaleDownFactor());
+            warpImage<float, SAMPLE_BILINEAR>(target, _warpedTargetImage, tpl.size(), w, sUp, sDown);
             
             HessianType hessian = HessianType::zeros();
             ParamType b = ParamType::zeros();
@@ -129,14 +136,14 @@ namespace imagealign {
             Sampler<SAMPLE_NEAREST> s;
 
             ScalarType sumErrors = 0;
+            int sumConstraints = 0;
             
-            for (int y = 0; y < tpl.rows; ++y) {
+            int idx = 0;
+            for (int y = 1; y < tpl.rows - 1; ++y) {
                 
                 const float *tplRow = tpl.ptr<float>(y);
                 
-                const int idxRowOrig = (y * pixelScaleUp) * (tpl.cols * pixelScaleUp);
-                
-                for (int x = 0; x < tpl.cols; ++x) {
+                for (int x = 1; x < tpl.cols - 1; ++x, ++idx) {
                     PointType ptpl(x + ScalarType(0.5), y + ScalarType(0.5));
                     const float templateIntensity = tplRow[x];
                     
@@ -146,12 +153,13 @@ namespace imagealign {
                     // 2. Compute the error
                     const float err = templateIntensity - targetIntensity;
                     sumErrors += ScalarType(err * err);
+                    sumConstraints += 1;
                     
                     // 3. Compute the target gradient on the warped image
                     const cv::Matx<ScalarType, 1, 2> grad = gradient<float, SAMPLE_NEAREST>(_warpedTargetImage, ptpl);
                     
                     // 4. Lookup the prec-computed Jacobian for the template pixel position corresponding to finest level.
-                    const JacobianType &jacobian = _jacobians[idxRowOrig + x * pixelScaleUp];
+                    const JacobianType &jacobian = _jacobianPyramid[this->level()][idx];
                     
                     // 5. Compute the steepest descent image (SDI) for current pixel location
                     const PixelSDIType sd = grad * jacobian;
@@ -170,7 +178,7 @@ namespace imagealign {
             // 9. Compositional update of warp parameters.
             w.updateForwardCompositional(delta);
             
-            this->setLastError(sumErrors / tpl.size().area());
+            this->setLastError(sumErrors / sumConstraints);
             this->setLastIncrement(delta);
         }
         
@@ -178,7 +186,8 @@ namespace imagealign {
         friend class AlignBase< AlignForwardCompositional<W>, W>;
         
         typedef std::vector< typename W::Traits::JacobianType > VecOfJacobians;
-        VecOfJacobians _jacobians;
+        std::vector<VecOfJacobians> _jacobianPyramid;
+        
         cv::Mat _warpedTargetImage;
     };
     
