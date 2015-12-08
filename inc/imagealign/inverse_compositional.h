@@ -75,6 +75,7 @@ namespace imagealign {
         typedef typename W::Traits::ParamType ParamType;
         typedef typename W::Traits::HessianType HessianType;
         typedef typename W::Traits::PixelSDIType PixelSDIType;
+        typedef typename W::Traits::GradientType GradientType;
         typedef typename W::Traits::JacobianType JacobianType;
         typedef typename W::Traits::PointType PointType;
         typedef typename W::Traits::ScalarType ScalarType;
@@ -108,7 +109,7 @@ namespace imagealign {
                         PointType p(x + ScalarType(0.5), y + ScalarType(0.5));
                         
                         // 1. Compute the gradient of the template
-                        const cv::Matx<ScalarType, 1, 2> grad = gradient<float, SAMPLE_NEAREST>(tpl, p);
+                        const GradientType grad = GradientType(gradient<float, SAMPLE_NEAREST>(tpl, p));
                         
                         // 2. Evaluate the Jacobian of image location.
                         // Note: Jacobians are computed with pixel positions corresponding

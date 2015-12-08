@@ -61,7 +61,7 @@ TEST_CASE("algorithm-translation")
         
         W::Traits::ParamType expected(20, 20);
         
-        ia::WarpTranslationF w;
+        W w;
         w.setParameters(W::Traits::ParamType(18, 18));
         
         testAlgorithm< ia::AlignForwardAdditive<W> >(tmpl, target, w, 1, expected);
@@ -80,7 +80,7 @@ TEST_CASE("algorithm-translation")
         
         W::Traits::ParamType expected(20, 20);
         
-        ia::WarpTranslationD w;
+        W w;
         w.setParameters(W::Traits::ParamType(18, 18));
         
         testAlgorithm< ia::AlignForwardAdditive<W> >(tmpl, target, w, 1, expected);
@@ -208,4 +208,112 @@ TEST_CASE("algorithm-similarity")
         testAlgorithm< ia::AlignInverseCompositional<W> >(tmpl, target, w, 1, expected, 0.02);
         testAlgorithm< ia::AlignInverseCompositional<W> >(tmpl, target, w, 2, expected, 0.02);
     }
+}
+
+// Test dummy dynamic warp;
+
+namespace ia = imagealign;
+
+const int WARP_TRANSLATION_DYAMIC = 255;
+
+template<class Scalar>
+struct ia::WarpTraits<WARP_TRANSLATION_DYAMIC, Scalar> : ia::WarpTraitsForRunTimeKnownParameterCount<WARP_TRANSLATION_DYAMIC, Scalar> {};
+
+template<class Scalar>
+class ia::Warp<WARP_TRANSLATION_DYAMIC, Scalar> {
+public:
+    typedef WarpTraits<WARP_TRANSLATION_DYAMIC, Scalar> Traits;
+    
+    Warp() {
+        _m.create(2, 1);
+        setIdentity();
+    }
+    
+    Warp(const Warp<WARP_TRANSLATION_DYAMIC, Scalar> &other) {
+        _m = other._m.clone();
+    }
+    
+    int numParameters() const {
+        return 2;
+    }
+    
+    void setIdentity() {
+        _m.setTo(0);
+    }
+    
+    typename Traits::PointType operator()(const typename Traits::PointType &p) const {
+        return typename Traits::PointType(p(0) + _m(0,0), p(1) + _m(1, 0));
+    }
+    
+    typename Traits::JacobianType jacobian(const typename Traits::PointType &p) const {
+        return Traits::JacobianType::eye(2, 2, CV_MAKETYPE(cv::DataType<Scalar>::depth, 1));
+    }
+    
+    void updateInverseCompositional(const typename Traits::ParamType &delta) {
+        _m -= delta;
+    }
+    
+    // Helper functions
+    
+    void setParameters(const typename Traits::ParamType &p) {
+        p.copyTo(_m);
+    }
+    
+    typename Traits::ParamType parameters() const {
+        return _m.clone();
+    }
+    
+private:
+    cv::Mat_<Scalar> _m;
+};
+
+
+TEST_CASE("algorithm-dynamic-warp")
+{
+    namespace ia = imagealign;
+    
+    cv::Mat target(100, 100, CV_8UC1);
+    cv::randu(target, cv::Scalar::all(0), cv::Scalar::all(255));
+    cv::blur(target, target, cv::Size(5,5));
+    cv::Mat tmpl = target(cv::Rect(20, 20, 10, 10));
+    
+    
+    // Floating point
+    {
+        typedef ia::Warp<WARP_TRANSLATION_DYAMIC, float> W;
+        
+        W::Traits::ParamType expected(2, 1, CV_32FC1);
+        expected.at<float>(0, 0) = 20;
+        expected.at<float>(1, 0) = 20;
+        
+        W::Traits::ParamType noisy(2, 1, CV_32FC1);
+        noisy.at<float>(0, 0) = 18;
+        noisy.at<float>(1, 0) = 18;
+        
+        W w;
+        w.setParameters(noisy);
+        
+        testAlgorithm< ia::AlignInverseCompositional<W> >(tmpl, target, w, 1, expected);
+        testAlgorithm< ia::AlignInverseCompositional<W> >(tmpl, target, w, 2, expected);
+    }
+    
+    // Double precision floating point
+    {
+        typedef ia::Warp<WARP_TRANSLATION_DYAMIC, double> W;
+        
+        W::Traits::ParamType expected(2, 1, CV_64FC1);
+        expected.at<double>(0, 0) = 20;
+        expected.at<double>(1, 0) = 20;
+        
+        W::Traits::ParamType noisy(2, 1, CV_64FC1);
+        noisy.at<double>(0, 0) = 18;
+        noisy.at<double>(1, 0) = 18;
+        
+        W w;
+        w.setParameters(noisy);
+        
+        testAlgorithm< ia::AlignInverseCompositional<W> >(tmpl, target, w, 1, expected);
+        testAlgorithm< ia::AlignInverseCompositional<W> >(tmpl, target, w, 2, expected);
+    }
+
 }

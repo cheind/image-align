@@ -32,7 +32,7 @@ namespace imagealign {
         Approximation is based on central difference.
      */
     template<class ChannelType, int SampleMethod, class Scalar>
-    inline cv::Matx<ChannelType, 1, 2> gradient(const cv::Mat &img, const cv::Matx<Scalar, 2, 1> &p, const Sampler<SampleMethod> &s = Sampler<SampleMethod>())
+    inline cv::Matx<Scalar, 1, 2> gradient(const cv::Mat &img, const cv::Matx<Scalar, 2, 1> &p, const Sampler<SampleMethod> &s = Sampler<SampleMethod>())
     {
         return cv::Matx<ChannelType, 1, 2>(
             (s.template sample<ChannelType>(img, p(0) + Scalar(1), p(1)) -

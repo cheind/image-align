@@ -84,6 +84,9 @@ namespace imagealign {
         /** Type to hold parameters of warp. Matrix of size Nx1.*/
         typedef void ParamType;
         
+        /** Type to hold a gradient in x and y direction. Matrix of size 1x2. */
+        typedef void GradientType;
+        
         /** Type to hold Jacobian of warp. Matrix of size 2xN. */
         typedef void JacobianType;
         
@@ -119,6 +122,9 @@ namespace imagealign {
         /** Type to hold parameters of warp. */
         typedef cv::Matx<Scalar, ParametersAtCompileTime, 1> ParamType;
         
+        /** Type to hold a gradient in x and y direction. Matrix of size 1x2. */
+        typedef cv::Matx<Scalar, 1, 2> GradientType;
+        
         /** Type to hold Jacobian of warp. */
         typedef cv::Matx<Scalar, 2, ParametersAtCompileTime> JacobianType;
         
@@ -138,6 +144,49 @@ namespace imagealign {
             return HessianType::zeros();
         }
 
+    };
+    
+    /**
+        Default warp traits implementation for run time known parameter sizes.
+     */
+    template<int W, class Scalar>
+    struct WarpTraitsForRunTimeKnownParameterCount {
+        enum {
+            WarpMode = W,
+            ParametersAtCompileTime = -1
+        };
+        
+        /** Precision of floating point type */
+        typedef Scalar ScalarType;
+        
+        /** Type to hold a 2 dimensional point */
+        typedef cv::Matx<Scalar, 2, 1> PointType;
+        
+        /** Type to hold parameters of warp. */
+        typedef cv::Mat ParamType;
+        
+        /** Type to hold a gradient in x and y direction. Matrix of size 1x2. */
+        typedef cv::Mat GradientType;
+        
+        /** Type to hold Jacobian of warp. */
+        typedef cv::Mat JacobianType;
+        
+        /** Type to hold Hessian matrix. */
+        typedef cv::Mat HessianType;
+        
+        /** Type to hold the steepest descent image for a single pixel */
+        typedef cv::Mat PixelSDIType;
+        
+        /** Helper function to allocate a new ParamType object initialized to zero. */
+        static ParamType zeroParam(int nParams) {
+            return ParamType::zeros(nParams, 1, CV_MAKETYPE(cv::DataType<Scalar>::depth, 1));
+        }
+        
+        /** Helper function to allocate a new HessianType object initialized to zero. */
+        static HessianType zeroHessian(int nParams) {
+            return HessianType::zeros(nParams, nParams, CV_MAKETYPE(cv::DataType<Scalar>::depth, 1));
+        }
+        
     };
     
     /**
