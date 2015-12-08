@@ -67,7 +67,7 @@ a.prepare(tpl, target, 3);
 
 // Align
 int maxIterationsPerLevel[] = {30, 30, 15};
-a.align(w, iterationsPerLevel);
+a.align(w, maxIterationsPerLevel);
 ```
 
 When alignment has finished, ``w`` will hold the warp that best aligns the template image with the target image. 
