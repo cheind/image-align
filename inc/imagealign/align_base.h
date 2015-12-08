@@ -72,7 +72,7 @@ namespace imagealign {
             \param target Single channel target image to align template with.
             \param pyramidLevels Maximum number of pyramid levels to generate.
          */
-        void prepare(cv::InputArray tmpl, cv::InputArray target, const W &warp, int pyramidLevels)
+        void prepare(cv::InputArray tmpl, cv::InputArray target, const W &w, int pyramidLevels)
         {
             // Do the basic thing everyone needs
             CV_Assert(tmpl.channels() == 1);
@@ -96,12 +96,12 @@ namespace imagealign {
             std::reverse(_templatePyramid.begin(), _templatePyramid.end());
             std::reverse(_targetPyramid.begin(), _targetPyramid.end());
             
-            _inc = W::Traits::ParamType::zeros();
+            _inc = W::Traits::zeroParam(w.numParameters());
             _iter = 0;
             setLevel(0);
             
             // Invoke prepare of derived
-            static_cast<D*>(this)->prepareImpl(warp);
+            static_cast<D*>(this)->prepareImpl(w);
         }
         
         /** 

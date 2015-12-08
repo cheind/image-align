@@ -100,7 +100,7 @@ namespace imagealign {
                 
                 _sdiPyramid[i].resize((s.width-2) * (s.height-2));
                 
-                HessianType hessian = HessianType::zeros();
+                HessianType hessian = W::Traits::zeroHessian(w.numParameters());
                 
                 int idx = 0;
                 for (int y = 1; y < tpl.rows - 1 ; ++y) {
@@ -150,7 +150,7 @@ namespace imagealign {
             
             Sampler<SAMPLE_BILINEAR> s;
             
-            ParamType b = ParamType::zeros();
+            ParamType b = W::Traits::zeroParam(w.numParameters());
             ScalarType sumErrors = 0;
             int sumConstraints = 0;
             

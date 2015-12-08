@@ -93,8 +93,8 @@ namespace imagealign {
             
             Sampler<SAMPLE_BILINEAR> s;
             
-            HessianType hessian = HessianType::zeros();
-            ParamType b = ParamType::zeros();
+            HessianType hessian = W::Traits::zeroHessian(w.numParameters());
+            ParamType b = W::Traits::zeroParam(w.numParameters());
 
             ScalarType sumErrors = 0;
             int sumConstraints = 0;

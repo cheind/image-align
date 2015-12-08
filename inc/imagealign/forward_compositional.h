@@ -130,8 +130,8 @@ namespace imagealign {
             // warping the entire target image explicitely here.
             warpImage<float, SAMPLE_BILINEAR>(target, _warpedTargetImage, tpl.size(), w, sUp, sDown);
             
-            HessianType hessian = HessianType::zeros();
-            ParamType b = ParamType::zeros();
+            HessianType hessian = W::Traits::zeroHessian(w.numParameters());
+            ParamType b = W::Traits::zeroParam(w.numParameters());
             
             Sampler<SAMPLE_NEAREST> s;
 
