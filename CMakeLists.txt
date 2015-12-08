@@ -35,6 +35,9 @@ target_link_libraries(ialign ${OpenCV_LIBRARIES})
 add_executable(example_align examples/align.cpp)
 target_link_libraries(example_align ialign ${OpenCV_LIBRARIES})
 
+add_executable(example_optflow examples/optical_flow.cpp)
+target_link_libraries(example_optflow ialign ${OpenCV_LIBRARIES})
+
 # Tests
 
 add_executable(tests
