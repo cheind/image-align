@@ -20,6 +20,7 @@ add_library(ialign
     inc/imagealign/sampling.h
     inc/imagealign/warp.h
     inc/imagealign/warp_image.h
+    inc/imagealign/image_pyramid.h
     inc/imagealign/align_base.h
     inc/imagealign/forward_additive.h
     inc/imagealign/forward_compositional.h

@@ -22,14 +22,7 @@
 
 #include <imagealign/warp.h>
 #include <imagealign/config.h>
-#include <vector>
-
-IA_DISABLE_PRAGMA_WARN(4190)
-IA_DISABLE_PRAGMA_WARN(4244)
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-IA_DISABLE_PRAGMA_WARN_END
-IA_DISABLE_PRAGMA_WARN_END
+#include <imagealign/image_pyramid.h>
 
 namespace imagealign {
     
@@ -79,22 +72,9 @@ namespace imagealign {
             CV_Assert(target.channels() == 1);
             
             pyramidLevels = std::max<int>(pyramidLevels, 1);
-            _levels = pyramidLevels;
             
-            _targetPyramid.resize(pyramidLevels);
-            _templatePyramid.resize(pyramidLevels);
-            
-            tmpl.getMat().convertTo(_templatePyramid[0], CV_32F);
-            target.getMat().convertTo(_targetPyramid[0], CV_32F);
-            
-            for (int i = 1; i < pyramidLevels; ++i) {
-                cv::pyrDown(_templatePyramid[i-1], _templatePyramid[i]);
-                cv::pyrDown(_targetPyramid[i-1], _targetPyramid[i]);
-            }
-            
-            // Convention is to have coarsest level at front
-            std::reverse(_templatePyramid.begin(), _templatePyramid.end());
-            std::reverse(_targetPyramid.begin(), _targetPyramid.end());
+            _templatePyramid.create(tmpl, pyramidLevels);
+            _targetPyramid.create(target, pyramidLevels);
             
             _inc = W::Traits::zeroParam(w.numParameters());
             _iter = 0;
@@ -170,7 +150,7 @@ namespace imagealign {
         SelfType &align(W &w, const int *maxIterationsPerLevel)
         {
             
-            for (int i = 0; i < _levels; ++i) {
+            for (int i = 0; i < numLevels(); ++i) {
                 this->setLevel(i);
                 
                 int iter = 0;
@@ -187,7 +167,7 @@ namespace imagealign {
         */
         SelfType &setLevel(int level) {
             
-            level = std::max<int>(0, std::min<int>(level, _levels - 1));
+            level = std::max<int>(0, std::min<int>(level, numLevels() - 1));
             _level = level;
             
             // Errors between levels are not compatible.
@@ -208,7 +188,7 @@ namespace imagealign {
             Return the total number of levels.
          */
         int numLevels() const {
-            return _levels;
+            return _targetPyramid.numLevels();
         }
         
         /**
@@ -271,16 +251,16 @@ namespace imagealign {
             return _targetPyramid[_level];
         }
         
-        std::vector<cv::Mat> templateImagePyramid() {
+        ImagePyramid &templateImagePyramid() {
             return _templatePyramid;
         }
         
-        std::vector<cv::Mat> targetImagePyramid() {
+        ImagePyramid &targetImagePyramid() {
             return _targetPyramid;
         }
         
         ScalarType scaleUpFactor(int level) const {
-            return std::pow(ScalarType(2), (ScalarType)_levels - level - 1);
+            return std::pow(ScalarType(2), (ScalarType)numLevels() - level - 1);
         }
         
         ScalarType scaleDownFactor(int level) const {
@@ -307,10 +287,9 @@ namespace imagealign {
         
     private:
         
-        std::vector<cv::Mat> _templatePyramid;
-        std::vector<cv::Mat> _targetPyramid;
+        ImagePyramid _templatePyramid;
+        ImagePyramid _targetPyramid;
         
-        int _levels;
         int _level;
         int _iter;
         ScalarType _error;
