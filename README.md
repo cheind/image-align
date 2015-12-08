@@ -36,16 +36,16 @@ User defined warp functions can be easily added.
 #include <imagealign/imagealign.h>
 ```
 
-Next, declare the type and precision of warp, and an alignment algorithm you wish to use
+Next, declare the type / precision of warp, and the alignment variant you wish to use
 
 ```C++
 namespace ia = imagealign;
 
-// Use a double precision warp that descibres a similarity motion
+// Use a double precision warp describing a similarity motion
 // (rotation, translation and uniform scale).
 typedef ia::WarpSimilarityD WarpType;
 
-// Use Inverse Compositional Algorithm with the warp.
+// Use Inverse Compositional algorithm for image alignment.
 typedef ia::AlignInverseCompositional<WarpType> AlignType;
 ```
 
