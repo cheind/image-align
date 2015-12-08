@@ -93,10 +93,10 @@ namespace imagealign {
         /**
             Prepare for alignment.
          
-            This function takes the template image and an already built target image pyramid
+            This function takes the template image and an pre built target image pyramid
             and performs necessary pre-calculations to speed up the alignment process.
          
-            This function comes in handy when you want to track multiple templates on a single
+            This function comes in handy when you want to track multiple templates on the same
             target image. Then, the target image pyramid can be built once, and shared among all
             alignment objects.
          
