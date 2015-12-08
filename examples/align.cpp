@@ -168,7 +168,7 @@ int main(int argc, char **argv)
         AlignType at;
         at.prepare(tpl, target, w, levels);
         
-        int iterationsPerLevel[] = {5, 10, 5};
+        int iterationsPerLevel[] = {10, 10, 10};
         int iterationsPerformed[] = {0, 0, 0};
         
         int64 e1 = cv::getTickCount();
