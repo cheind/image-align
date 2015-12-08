@@ -52,8 +52,8 @@ namespace imagealign {
         International journal of computer vision 56.3 (2004): 221-255.
 
      */
-    template<int WarpMode>
-    class AlignForwardAdditive : public AlignBase< AlignForwardAdditive<WarpMode>, WarpMode> {
+    template<class W>
+    class AlignForwardAdditive : public AlignBase< AlignForwardAdditive<W>, W> {
     protected:
         
         /** 
@@ -76,15 +76,15 @@ namespace imagealign {
          
             \param w Current state of warp estimation. Will be modified to hold updated warp.
          */
-        void alignImpl(Warp<WarpMode> &w)
+        void alignImpl(W &w)
         {
             cv::Mat tpl = this->templateImage();
             cv::Mat target = this->targetImage();
             
-            typedef typename WarpTraits<WarpMode>::JacobianType JacobianType;
-            typedef typename WarpTraits<WarpMode>::HessianType HessianType;
-            typedef typename WarpTraits<WarpMode>::PixelSDIType PixelSDIType;
-            typedef typename WarpTraits<WarpMode>::ParamType ParamType;
+            typedef typename W::Traits::JacobianType JacobianType;
+            typedef typename W::Traits::HessianType HessianType;
+            typedef typename W::Traits::PixelSDIType PixelSDIType;
+            typedef typename W::Traits::ParamType ParamType;
             
             Sampler<SAMPLE_BILINEAR> s;
             
@@ -139,7 +139,7 @@ namespace imagealign {
         }
         
     private:
-        friend class AlignBase< AlignForwardAdditive<WarpMode>, WarpMode>;
+        friend class AlignBase< AlignForwardAdditive<W>, W>;
     };
     
     

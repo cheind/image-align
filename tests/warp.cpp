@@ -26,16 +26,15 @@ TEST_CASE("warp-translational")
 {
     namespace ia = imagealign;
     
-    typedef ia::Warp<ia::WARP_TRANSLATION> WarpType;
-    typedef ia::WarpTraits<ia::WARP_TRANSLATION> Traits;
+    typedef ia::WarpTranslationF W;
     
-    WarpType w;
+    W w;
     w.setIdentity();
     
     REQUIRE(w.parameters()(0,0) == 0.f);
     REQUIRE(w.parameters()(1,0) == 0.f);
     
-    Traits::ParamType p;
+    W::Traits::ParamType p;
     p(0,0) = 10.f;
     p(1,0) = 5.f;
     w.setParameters(p);
@@ -56,17 +55,16 @@ TEST_CASE("warp-euclidean")
 {
     namespace ia = imagealign;
     
-    typedef ia::Warp<ia::WARP_EUCLIDEAN> WarpType;
-    typedef ia::WarpTraits<ia::WARP_EUCLIDEAN> Traits;
+    typedef ia::WarpEuclideanF W;
     
-    WarpType w;
+    W w;
     w.setIdentity();
     
     REQUIRE(w.parameters()(0,0) == 0.f);
     REQUIRE(w.parameters()(1,0) == 0.f);
     REQUIRE(w.parameters()(2,0) == 0.f);
     
-    Traits::ParamType p;
+    W::Traits::ParamType p;
     p(0,0) = 5.f;
     p(1,0) = 5.f;
     p(2,0) = 3.1415f;
@@ -90,10 +88,9 @@ TEST_CASE("warp-similarity")
 {
     namespace ia = imagealign;
     
-    typedef ia::Warp<ia::WARP_SIMILARITY> WarpType;
-    typedef ia::WarpTraits<ia::WARP_SIMILARITY> Traits;
+    typedef ia::WarpSimilarityF W;
     
-    WarpType w;
+    W w;
     w.setIdentity();
     
     REQUIRE(w.parameters()(0,0) == 0.f);
@@ -101,14 +98,14 @@ TEST_CASE("warp-similarity")
     REQUIRE(w.parameters()(2,0) == 0.f);
     REQUIRE(w.parameters()(3,0) == 0.f);
     
-    w.setParametersInCanonicalRepresentation(Traits::ParamType(5.f, 5.f, 1.7f, 2.0f));
-    Traits::ParamType pr = w.parametersInCanonicalRepresentation();
+    w.setParametersInCanonicalRepresentation(W::Traits::ParamType(5.f, 5.f, 1.7f, 2.0f));
+    W::Traits::ParamType pr = w.parametersInCanonicalRepresentation();
     REQUIRE(pr(0,0) == Catch::Detail::Approx(5));
     REQUIRE(pr(1,0) == Catch::Detail::Approx(5));
     REQUIRE(pr(2,0) == Catch::Detail::Approx(1.7));
     REQUIRE(pr(3,0) == Catch::Detail::Approx(2));
     
-    w.setParametersInCanonicalRepresentation(Traits::ParamType(5.f, 5.f, 3.1415f, 2.f));
+    w.setParametersInCanonicalRepresentation(W::Traits::ParamType(5.f, 5.f, 3.1415f, 2.f));
     
     cv::Point2f x(0.f, 0.f);
     cv::Point2f wx = w(x);

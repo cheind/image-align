@@ -26,9 +26,8 @@ TEST_CASE("forward-additive")
 {
     namespace ia = imagealign;
     
-    typedef ia::Warp<ia::WARP_TRANSLATION> WarpType;
-    typedef ia::WarpTraits<ia::WARP_TRANSLATION> Traits;
-    typedef ia::AlignForwardAdditive<ia::WARP_TRANSLATION> AlignType;
+    typedef ia::WarpTranslationF W;
+    typedef ia::AlignForwardAdditive<W> AlignType;
     
     cv::Mat target(100, 100, CV_8UC1);
     cv::randu(target, cv::Scalar::all(0), cv::Scalar::all(255));
@@ -39,8 +38,8 @@ TEST_CASE("forward-additive")
     AlignType al;
     al.prepare(tmpl, target, 1);
     
-    WarpType w;
-    w.setParameters(Traits::ParamType(15, 15));
+    W w;
+    w.setParameters(W::Traits::ParamType(15, 15));
     
     al.align(w, 100, 0.001f);
     
@@ -53,9 +52,8 @@ TEST_CASE("forward-additive-euclidean")
 {
     namespace ia = imagealign;
     
-    typedef ia::Warp<ia::WARP_EUCLIDEAN> WarpType;
-    typedef ia::WarpTraits<ia::WARP_EUCLIDEAN> Traits;
-    typedef ia::AlignForwardAdditive<ia::WARP_EUCLIDEAN> AlignType;
+    typedef ia::WarpEuclideanF W;
+    typedef ia::AlignForwardAdditive<W> AlignType;
     
     cv::Mat target(100, 100, CV_8UC1);
     cv::randu(target, cv::Scalar::all(0), cv::Scalar::all(255));
@@ -63,17 +61,17 @@ TEST_CASE("forward-additive-euclidean")
     
     cv::Mat tmpl = cv::Mat(20, 20, CV_8UC1);
     
-    Traits::ParamType real(cv::theRNG().uniform(20.f, 40.f),
+    W::Traits::ParamType real(cv::theRNG().uniform(20.f, 40.f),
                         cv::theRNG().uniform(20.f, 40.f),
                         cv::theRNG().uniform(0.17f, 0.78f));
     
-    WarpType w;
+    W w;
     w.setParameters(real);
     
     ia::warpImage<uchar, ia::SAMPLE_BILINEAR>(target, tmpl, tmpl.size(), w);
     
     // Perturbate warp
-    Traits::ParamType r((float)cv::theRNG().gaussian(2.f),
+    W::Traits::ParamType r((float)cv::theRNG().gaussian(2.f),
                         (float)cv::theRNG().gaussian(2.f),
                         (float)cv::theRNG().gaussian(0.5f));
     
@@ -94,9 +92,8 @@ TEST_CASE("forward-additive-similarity")
 {
     namespace ia = imagealign;
     
-    typedef ia::Warp<ia::WARP_SIMILARITY> WarpType;
-    typedef ia::WarpTraits<ia::WARP_SIMILARITY> Traits;
-    typedef ia::AlignForwardAdditive<ia::WARP_SIMILARITY> AlignType;
+    typedef ia::WarpSimilarityF W;
+    typedef ia::AlignForwardAdditive<W> AlignType;
     
     cv::Mat target(100, 100, CV_8UC1);
     cv::randu(target, cv::Scalar::all(0), cv::Scalar::all(255));
@@ -104,18 +101,18 @@ TEST_CASE("forward-additive-similarity")
     
     cv::Mat tmpl = cv::Mat(20, 20, CV_8UC1);
     
-    Traits::ParamType real;
+    W::Traits::ParamType real;
     real << 29.110104f, 20.72f, 0.66f, 1.094f;
     
-    WarpType w;
+    W w;
     w.setParametersInCanonicalRepresentation(real);
     
-    Traits::ParamType realp = w.parameters();
+    W::Traits::ParamType realp = w.parameters();
     
     ia::warpImage<uchar, ia::SAMPLE_BILINEAR>(target, tmpl, tmpl.size(), w);
     
     // Perturbate warp
-    Traits::ParamType r;
+    W::Traits::ParamType r;
     r << 0.74045879f, 0.92933869f, -0.21553245f, 0.16472194f;
     
     w.setParametersInCanonicalRepresentation(real + r);

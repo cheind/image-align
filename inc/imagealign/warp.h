@@ -70,8 +70,14 @@ namespace imagealign {
         In the following N corresponds to the number of parameters of the
         warp.
      */
-    template<int WarpMode>
+    template<int W, class Scalar>
     struct WarpTraits {
+        enum {
+            WarpMode = W
+        };
+        /** Precision of floating point type */
+        typedef Scalar ScalarType;
+        
         /** Type to hold parameters of warp. Matrix of size Nx1.*/
         typedef void ParamType;
         
@@ -91,11 +97,11 @@ namespace imagealign {
      
         Custom warps should at least offer the given methods and constructors.
     */
-    template<int WarpMode>
+    template<int WarpMode, class Scalar>
     class Warp {
     public:
         /** Be copy-constructible from another warp. */
-        Warp(const Warp<WarpMode> &other);
+        Warp(const Warp<WarpMode, Scalar> &other);
         
         /** Be able to set to identity transform. */
         void setIdentity();
@@ -104,59 +110,63 @@ namespace imagealign {
         inline cv::Point2f operator()(const cv::Point2f &p) const;
         
         /** Be able to compute the Jacobian of the warp at a given coordinate pair. */
-        typename WarpTraits<WarpMode>::JacobianType jacobian(const cv::Point2f &p) const;
+        typename WarpTraits<WarpMode, Scalar>::JacobianType jacobian(const cv::Point2f &p) const;
         
         /** Be able to perform the forward additive step. Only when using AlignForwardAdditive. */
-        void updateForwardAdditive(const typename WarpTraits<WarpMode>::ParamType &delta);
+        void updateForwardAdditive(const typename WarpTraits<WarpMode, Scalar>::ParamType &delta);
         
         /** Be able to perform the forward compositional step. Only when using AlignForwardCompositional. */
-        void updateForwardCompositional(const typename WarpTraits<WarpMode>::ParamType &delta);
+        void updateForwardCompositional(const typename WarpTraits<WarpMode, Scalar>::ParamType &delta);
         
         /** Be able to perform the inverse compositional step. Only when using AlignInverseCompositional. */
-        void updateInverseCompositional(const typename WarpTraits<WarpMode>::ParamType &delta);
+        void updateInverseCompositional(const typename WarpTraits<WarpMode, Scalar>::ParamType &delta);
 
     };
     
     /** 
         Default warp traits implementation for compile time known parameter sizes.
      */
-    template<int NParams>
+    template<int W, int N, class Scalar>
     struct WarpTraitsForCompileTimeKnownParameterCount {
         enum {
-            NParameters = NParams
+            WarpMode = W,
+            NParameters = N
         };
         
+        /** Precision of floating point type */
+        typedef Scalar ScalarType;
+        
         /** Type to hold parameters of warp. */
-        typedef cv::Matx<float, NParameters, 1> ParamType;
+        typedef cv::Matx<Scalar, NParameters, 1> ParamType;
         
         /** Type to hold Jacobian of warp. */
-        typedef cv::Matx<float, 2, NParameters> JacobianType;
+        typedef cv::Matx<Scalar, 2, NParameters> JacobianType;
         
         /** Type to hold Hessian matrix. */
-        typedef cv::Matx<float, NParameters, NParameters> HessianType;
+        typedef cv::Matx<Scalar, NParameters, NParameters> HessianType;
         
         /** Type to hold the steepest descent image for a single pixel */
-        typedef cv::Matx<float, 1, NParameters> PixelSDIType;
+        typedef cv::Matx<Scalar, 1, NParameters> PixelSDIType;
 
     };
     
     /**
         Warp traits for translational motion.
      */
-    template<>
-    struct WarpTraits<WARP_TRANSLATION> : WarpTraitsForCompileTimeKnownParameterCount<2> {};
+    template<class Scalar>
+    struct WarpTraits<WARP_TRANSLATION, Scalar> : WarpTraitsForCompileTimeKnownParameterCount<WARP_TRANSLATION, 2, Scalar> {};
     
     /**
         Warp traits for Euclidean motion.
      */
-    template<>
-    struct WarpTraits<WARP_EUCLIDEAN> : WarpTraitsForCompileTimeKnownParameterCount<3> {};
+    template<class Scalar>
+    struct WarpTraits<WARP_EUCLIDEAN, Scalar> : WarpTraitsForCompileTimeKnownParameterCount<WARP_EUCLIDEAN, 3, Scalar> {};
     
     /**
         Warp traits for Similarity motion.
      */
-    template<>
-    struct WarpTraits<WARP_SIMILARITY> : WarpTraitsForCompileTimeKnownParameterCount<4> {};
+    template<class Scalar>
+    struct WarpTraits<WARP_SIMILARITY, Scalar> : WarpTraitsForCompileTimeKnownParameterCount<WARP_SIMILARITY, 4, Scalar> {};
 
     /**
         Base class for warps based on planar motions.
@@ -165,10 +175,10 @@ namespace imagealign {
         what this class does. It can thus provide a (not always) efficient warp
         method for image coordinates.
      */
-    template<int WarpMode>
+    template<int WarpMode, class Scalar>
     class PlanarWarp {
     public:
-        typedef cv::Matx<float, 3, 3> MType;
+        typedef cv::Matx<Scalar, 3, 3> MType;
         
         inline PlanarWarp() {
             setIdentity();
@@ -189,8 +199,8 @@ namespace imagealign {
         inline MType invMatrix() const {
             if (WarpMode < WARP_PERSPECTIVE) {
                 // Faster variant for Affine matrices
-                cv::Matx<float, 2, 2> ir = _m.get_minor<2, 2>(0, 0).inv();
-                cv::Matx<float, 2, 1> ib = -ir * _m.get_minor<2, 1>(0, 2);
+                cv::Matx<Scalar, 2, 2> ir = _m. template get_minor<2, 2>(0, 0).inv();
+                cv::Matx<Scalar, 2, 1> ib = -ir * _m. template get_minor<2, 1>(0, 2);
                 
                 MType result;
                 
@@ -245,11 +255,17 @@ namespace imagealign {
             0  1  ty
 
     */
-    template<>
-    class Warp<WARP_TRANSLATION> : public PlanarWarp<WARP_TRANSLATION> {
+    template<class Scalar>
+    class Warp<WARP_TRANSLATION, Scalar> : public PlanarWarp<WARP_TRANSLATION, Scalar> {
+    private:
+        using PlanarWarp<WARP_TRANSLATION, Scalar>::_m;
+        using PlanarWarp<WARP_TRANSLATION, Scalar>::matrix;
+        using PlanarWarp<WARP_TRANSLATION, Scalar>::setMatrix;
+
     public:
-        typedef WarpTraits<WARP_TRANSLATION>::ParamType ParamType;
-        typedef WarpTraits<WARP_TRANSLATION>::JacobianType JacobianType;
+        typedef WarpTraits<WARP_TRANSLATION, Scalar> Traits;
+        typedef typename Traits::ParamType ParamType;
+        typedef typename Traits::JacobianType JacobianType;
 
         /** Get warp parameters */
         ParamType parameters() const {
@@ -288,14 +304,14 @@ namespace imagealign {
         
         /** Forward compositional step. */
         void updateForwardCompositional(const ParamType &delta) {
-            Warp<WARP_TRANSLATION> wDelta;
+            Warp<WARP_TRANSLATION, Scalar> wDelta;
             wDelta.setParameters(delta);
             setMatrix(matrix() * wDelta.matrix());
         }
         
         /** Inverse compositional step. */
         void updateInverseCompositional(const ParamType &delta) {
-            Warp<WARP_TRANSLATION> wDelta;
+            Warp<WARP_TRANSLATION, Scalar> wDelta;
             wDelta.setParameters(delta);
             setMatrix(matrix() * wDelta.invMatrix());
         }
@@ -315,12 +331,18 @@ namespace imagealign {
             c = cos(theta)
             s = sin(theta)
      */
-    template<>
-    class Warp<WARP_EUCLIDEAN> : public PlanarWarp<WARP_EUCLIDEAN> {
+    template<class Scalar>
+    class Warp<WARP_EUCLIDEAN, Scalar> : public PlanarWarp<WARP_EUCLIDEAN, Scalar> {
+    private:
+        using PlanarWarp<WARP_EUCLIDEAN, Scalar>::_m;
+        using PlanarWarp<WARP_EUCLIDEAN, Scalar>::matrix;
+        using PlanarWarp<WARP_EUCLIDEAN, Scalar>::setMatrix;
+        
     public:
         
-        typedef WarpTraits<WARP_EUCLIDEAN>::ParamType ParamType;
-        typedef WarpTraits<WARP_EUCLIDEAN>::JacobianType JacobianType;
+        typedef WarpTraits<WARP_EUCLIDEAN, Scalar> Traits;
+        typedef typename Traits::ParamType ParamType;
+        typedef typename Traits::JacobianType JacobianType;
         
         /** Get warp parameters */
         ParamType parameters() const {
@@ -378,14 +400,14 @@ namespace imagealign {
         
         /** Forward compositional step. */
         void updateForwardCompositional(const ParamType &delta) {
-            Warp<WARP_EUCLIDEAN> wDelta;
+            Warp<WARP_EUCLIDEAN, Scalar> wDelta;
             wDelta.setParameters(delta);
             setMatrix(matrix() * wDelta.matrix());
         }
         
         /** Inverse compositional step. */
         void updateInverseCompositional(const ParamType &delta) {
-            Warp<WARP_EUCLIDEAN> wDelta;
+            Warp<WARP_EUCLIDEAN, Scalar> wDelta;
             wDelta.setParameters(delta);
             setMatrix(matrix() * wDelta.invMatrix());
         }
@@ -411,12 +433,18 @@ namespace imagealign {
      
         Also note that in this parametrization a and b are not independent parameters.
      */
-    template<>
-    class Warp<WARP_SIMILARITY> : public PlanarWarp<WARP_SIMILARITY> {
+    template<class Scalar>
+    class Warp<WARP_SIMILARITY, Scalar> : public PlanarWarp<WARP_SIMILARITY, Scalar> {
+    private:
+        using PlanarWarp<WARP_SIMILARITY, Scalar>::_m;
+        using PlanarWarp<WARP_SIMILARITY, Scalar>::matrix;
+        using PlanarWarp<WARP_SIMILARITY, Scalar>::setMatrix;
+        
     public:
         
-        typedef WarpTraits<WARP_SIMILARITY>::ParamType ParamType;
-        typedef WarpTraits<WARP_SIMILARITY>::JacobianType JacobianType;
+        typedef WarpTraits<WARP_SIMILARITY, Scalar> Traits;
+        typedef typename Traits::ParamType ParamType;
+        typedef typename Traits::JacobianType JacobianType;
         
         /** Get warp parameters */
         ParamType parameters() const {
@@ -509,20 +537,29 @@ namespace imagealign {
         
         /** Forward compositional step. */
         void updateForwardCompositional(const ParamType &delta) {
-            Warp<WARP_SIMILARITY> wDelta;
+            Warp<WARP_SIMILARITY, Scalar> wDelta;
             wDelta.setParameters(delta);
             setMatrix(matrix() * wDelta.matrix());
         }
         
         /** Inverse compositional step. */
         void updateInverseCompositional(const ParamType &delta) {
-            
-            Warp<WARP_SIMILARITY> wDelta;
+            Warp<WARP_SIMILARITY, Scalar> wDelta;
             wDelta.setParameters(delta);
             setMatrix(matrix() * wDelta.invMatrix());
         }
         
     };
+    
+    typedef Warp<WARP_TRANSLATION, float> WarpTranslationF;
+    typedef Warp<WARP_TRANSLATION, double> WarpTranslationD;
+    
+    typedef Warp<WARP_EUCLIDEAN, float> WarpEuclideanF;
+    typedef Warp<WARP_EUCLIDEAN, double> WarpEuclideanD;
+    
+    typedef Warp<WARP_SIMILARITY, float> WarpSimilarityF;
+    typedef Warp<WARP_SIMILARITY, double> WarpSimilarityD;
+    
 }
 
 #endif

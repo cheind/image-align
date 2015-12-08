@@ -68,8 +68,8 @@ namespace imagealign {
             Technical Report CMU-RI-TR-02-16, Carnegie Mellon University Robotics Institute, 2002.
 
      */
-    template<int WarpMode>
-    class AlignInverseCompositional : public AlignBase<AlignInverseCompositional<WarpMode>, WarpMode> {
+    template<class W>
+    class AlignInverseCompositional : public AlignBase< AlignInverseCompositional<W>, W > {
     protected:
         
         /** 
@@ -79,11 +79,11 @@ namespace imagealign {
          */
         void prepareImpl()
         {
-            typedef typename WarpTraits<WarpMode>::HessianType HessianType;
-            typedef typename WarpTraits<WarpMode>::PixelSDIType PixelSDIType;
-            typedef typename WarpTraits<WarpMode>::JacobianType JacobianType;
+            typedef typename W::Traits::HessianType HessianType;
+            typedef typename W::Traits::PixelSDIType PixelSDIType;
+            typedef typename W::Traits::JacobianType JacobianType;
             
-            Warp<WarpMode> w;
+            W w;
             w.setIdentity();
             
             _sdiPyramid.resize(this->numLevels());
@@ -136,12 +136,12 @@ namespace imagealign {
          
             \param w Current state of warp estimation. Will be modified to hold updated warp.
          */
-        void alignImpl(Warp<WarpMode> &w)
+        void alignImpl(W &w)
         {
             cv::Mat tpl = this->templateImage();
             cv::Mat target = this->targetImage();
             
-            typedef typename WarpTraits<WarpMode>::ParamType ParamType;
+            typedef typename W::Traits::ParamType ParamType;
             
             ParamType b = ParamType::zeros();
             
@@ -181,10 +181,10 @@ namespace imagealign {
         }
         
     private:
-        friend class AlignBase< AlignInverseCompositional<WarpMode>, WarpMode>;
+        friend class AlignBase< AlignInverseCompositional<W>, W >;
         
-        typedef std::vector< typename WarpTraits<WarpMode>::PixelSDIType > VecOfSDI;
-        typedef std::vector< typename WarpTraits<WarpMode>::HessianType > VecOfHessian;
+        typedef std::vector< typename W::Traits::PixelSDIType > VecOfSDI;
+        typedef std::vector< typename W::Traits::HessianType > VecOfHessian;
     
         std::vector<VecOfSDI> _sdiPyramid;
         VecOfHessian _invHessians;

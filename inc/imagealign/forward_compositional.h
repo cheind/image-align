@@ -70,8 +70,8 @@ namespace imagealign {
             Technical Report CMU-RI-TR-02-16, Carnegie Mellon University Robotics Institute, 2002.
 
      */
-    template<int WarpMode>
-    class AlignForwardCompositional : public AlignBase< AlignForwardCompositional<WarpMode>, WarpMode> {
+    template<class W>
+    class AlignForwardCompositional : public AlignBase< AlignForwardCompositional<W>, W> {
     protected:
         
         /** 
@@ -81,7 +81,7 @@ namespace imagealign {
          */
         void prepareImpl()
         {
-            Warp<WarpMode> w;
+            W w;
             w.setIdentity();
             
             // Computing jacobians only for finest pyramid level.
@@ -104,17 +104,17 @@ namespace imagealign {
          
             \param w Current state of warp estimation. Will be modified to hold updated warp.
          */
-        void alignImpl(Warp<WarpMode> &w)
+        void alignImpl(W &w)
         {
             cv::Mat tpl = this->templateImage();
             cv::Mat target = this->targetImage();
             
             int pixelScaleUp = (int)this->scaleUpFactor();
             
-            typedef typename WarpTraits<WarpMode>::HessianType HessianType;
-            typedef typename WarpTraits<WarpMode>::PixelSDIType PixelSDIType;
-            typedef typename WarpTraits<WarpMode>::ParamType ParamType;
-            typedef typename WarpTraits<WarpMode>::JacobianType JacobianType;
+            typedef typename W::Traits::HessianType HessianType;
+            typedef typename W::Traits::PixelSDIType PixelSDIType;
+            typedef typename W::Traits::ParamType ParamType;
+            typedef typename W::Traits::JacobianType JacobianType;
             
             // Computing the gradient happens on the warped image. Since evaluating the
             // the gradient in both directions takes 4 bilinear lookups, we are better off
@@ -173,9 +173,9 @@ namespace imagealign {
         }
         
     private:
-        friend class AlignBase< AlignForwardCompositional<WarpMode>, WarpMode>;
+        friend class AlignBase< AlignForwardCompositional<W>, W>;
         
-        typedef std::vector< typename WarpTraits<WarpMode>::JacobianType > VecOfJacobians;
+        typedef std::vector< typename W::Traits::JacobianType > VecOfJacobians;
         VecOfJacobians _jacobians;
         cv::Mat _warpedTargetImage;
     };

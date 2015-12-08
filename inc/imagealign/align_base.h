@@ -55,11 +55,11 @@ namespace imagealign {
         dealing with the warp. This effectively means that the warp always operates on the finest pyramid
         level.
      */
-    template<class Derived, int WarpMode>
+    template<class D, class W>
     class AlignBase {
     public:
         
-        typedef AlignBase<Derived, WarpMode> SelfType;
+        typedef AlignBase<D, W> SelfType;
         
         /** 
             Prepare for alignment.
@@ -95,12 +95,12 @@ namespace imagealign {
             std::reverse(_templatePyramid.begin(), _templatePyramid.end());
             std::reverse(_targetPyramid.begin(), _targetPyramid.end());
             
-            _inc = WarpTraits<WarpMode>::ParamType::zeros();
+            _inc = W::Traits::ParamType::zeros();
             _iter = 0;
             setLevel(0);
             
             // Invoke prepare of derived
-            static_cast<Derived*>(this)->prepareImpl();
+            static_cast<D*>(this)->prepareImpl();
         }
         
         /** 
@@ -111,9 +111,9 @@ namespace imagealign {
          
             \param w Current state of warp estimation. Will be modified to hold result.
          */
-        SelfType &align(Warp<WarpMode> &w)
+        SelfType &align(W &w)
         {
-            static_cast< Derived*>(this)->alignImpl(w);
+            static_cast<D*>(this)->alignImpl(w);
             ++_iter;
             
             return *this;
@@ -134,7 +134,7 @@ namespace imagealign {
             \param maxIterations Stops after maxIterations have been performed.
             \param eps Minimum norm of last increment.
          */
-        SelfType &align(Warp<WarpMode> &w, int maxIterations, float eps)
+        SelfType &align(W &w, int maxIterations, float eps)
         {
             
             align(w);
@@ -166,7 +166,7 @@ namespace imagealign {
             \param w Current state of warp estimation. Will be modified to hold result.
             \param maxIterationsPerLevel Maximum number of iterations per pyramid level (from coarse to fine).
          */
-        SelfType &align(Warp<WarpMode> &w, const int *maxIterationsPerLevel)
+        SelfType &align(W &w, const int *maxIterationsPerLevel)
         {
             
             for (int i = 0; i < _levels; ++i) {
@@ -248,7 +248,7 @@ namespace imagealign {
         /** 
             Access the incremental warp parameter update from last iteration.
         */
-        typename WarpTraits<WarpMode>::ParamType lastIncrement() const {
+        typename W::Traits::ParamType lastIncrement() const {
             return _inc;
         }
         
@@ -259,7 +259,7 @@ namespace imagealign {
             _error = err;
         }
         
-        void setLastIncrement(typename WarpTraits<WarpMode>::ParamType &inc) {
+        void setLastIncrement(typename W::Traits::ParamType &inc) {
             _inc = inc;
         }
         
@@ -310,7 +310,7 @@ namespace imagealign {
         float _errorChange;
         float _scaleFactorToOriginal;
         float _scaleFactorFromOriginal;
-        typename WarpTraits<WarpMode>::ParamType _inc;
+        typename W::Traits::ParamType _inc;
     };
     
     

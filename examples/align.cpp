@@ -27,25 +27,25 @@ IA_DISABLE_PRAGMA_WARN_END
 
 namespace ia = imagealign;
 
-void initializeWarp(cv::Size templateSize, cv::Size targetSize, ia::Warp<ia::WARP_TRANSLATION> &w) {
-    ia::WarpTraits<ia::WARP_TRANSLATION>::ParamType params;
+void initializeWarp(cv::Size templateSize, cv::Size targetSize, ia::Warp<ia::WARP_TRANSLATION, float> &w) {
+    ia::WarpTraits<ia::WARP_TRANSLATION, float>::ParamType params;
     params(0,0) = cv::theRNG().uniform(0.f, (float)(targetSize.width - templateSize.width));
     params(1,0) = cv::theRNG().uniform(0.f, (float)(targetSize.height - templateSize.height));
     
     w.setParameters(params);
 }
 
-void perturbateWarp(ia::Warp<ia::WARP_TRANSLATION> &w) {
+void perturbateWarp(ia::Warp<ia::WARP_TRANSLATION, float> &w) {
     
-    ia::WarpTraits<ia::WARP_TRANSLATION>::ParamType params = w.parameters();
+    ia::WarpTraits<ia::WARP_TRANSLATION, float>::ParamType params = w.parameters();
     params(0,0) += (float)cv::theRNG().gaussian(8.f);
     params(1,0) += (float)cv::theRNG().gaussian(8.f);
     
     w.setParameters(params);
 }
 
-void initializeWarp(cv::Size templateSize, cv::Size targetSize, ia::Warp<ia::WARP_EUCLIDEAN> &w) {
-    ia::WarpTraits<ia::WARP_EUCLIDEAN>::ParamType params;
+void initializeWarp(cv::Size templateSize, cv::Size targetSize, ia::Warp<ia::WARP_EUCLIDEAN, float> &w) {
+    ia::WarpTraits<ia::WARP_EUCLIDEAN, float>::ParamType params;
     params(0,0) = cv::theRNG().uniform(0.f, (float)(targetSize.width - templateSize.width));
     params(1,0) = cv::theRNG().uniform(0.f, (float)(targetSize.height - templateSize.height));
     params(2,0) = cv::theRNG().uniform(0.f, 3.1415f * 0.5f);
@@ -53,9 +53,9 @@ void initializeWarp(cv::Size templateSize, cv::Size targetSize, ia::Warp<ia::WAR
     w.setParameters(params);
 }
 
-void perturbateWarp(ia::Warp<ia::WARP_EUCLIDEAN> &w) {
+void perturbateWarp(ia::Warp<ia::WARP_EUCLIDEAN, float> &w) {
     
-    ia::WarpTraits<ia::WARP_EUCLIDEAN>::ParamType params = w.parameters();
+    ia::WarpTraits<ia::WARP_EUCLIDEAN, float>::ParamType params = w.parameters();
     params(0,0) += (float)cv::theRNG().gaussian(8.f);
     params(1,0) += (float)cv::theRNG().gaussian(8.f);
     params(2,0) += (float)cv::theRNG().gaussian(0.2f);
@@ -63,8 +63,8 @@ void perturbateWarp(ia::Warp<ia::WARP_EUCLIDEAN> &w) {
     w.setParameters(params);
 }
 
-void initializeWarp(cv::Size templateSize, cv::Size targetSize, ia::Warp<ia::WARP_SIMILARITY> &w) {
-    ia::WarpTraits<ia::WARP_SIMILARITY>::ParamType params;
+void initializeWarp(cv::Size templateSize, cv::Size targetSize, ia::Warp<ia::WARP_SIMILARITY, float> &w) {
+    ia::WarpTraits<ia::WARP_SIMILARITY, float>::ParamType params;
     
     params(0,0) = (float)cv::theRNG().uniform(0.f, (float)(targetSize.width - templateSize.width));
     params(1,0) = (float)cv::theRNG().uniform(0.f, (float)(targetSize.height - templateSize.height));
@@ -74,10 +74,10 @@ void initializeWarp(cv::Size templateSize, cv::Size targetSize, ia::Warp<ia::WAR
     w.setParametersInCanonicalRepresentation(params);
 }
 
-void perturbateWarp(ia::Warp<ia::WARP_SIMILARITY> &w) {
+void perturbateWarp(ia::Warp<ia::WARP_SIMILARITY, float> &w) {
     
     // Note parameters are tx, ty, a and b. So we rather use the canoncial form
-    ia::WarpTraits<ia::WARP_SIMILARITY>::ParamType params = w.parametersInCanonicalRepresentation();
+    ia::WarpTraits<ia::WARP_SIMILARITY, float>::ParamType params = w.parametersInCanonicalRepresentation();
     
     params(0,0) += (float)cv::theRNG().gaussian(3.f);
     params(1,0) += (float)cv::theRNG().gaussian(3.f);
@@ -88,7 +88,7 @@ void perturbateWarp(ia::Warp<ia::WARP_SIMILARITY> &w) {
 }
 
 template<int WarpType>
-void drawRectOfTemplate(cv::Mat &img, const ia::Warp<WarpType> &w, cv::Size tplSize, cv::Scalar color) {
+void drawRectOfTemplate(cv::Mat &img, const ia::Warp<WarpType, float> &w, cv::Size tplSize, cv::Scalar color) {
     
     cv::Point2f c0 = w(cv::Point2f(0.5f, 0.5f));
     cv::Point2f c1 = w(cv::Point2f(0.5f + tplSize.width, 0.5f));
@@ -105,14 +105,10 @@ int main(int argc, char **argv)
 {
     
     // Choose a warp
-    const int WarpMode = ia::WARP_SIMILARITY;
-    // const int WarpMode = ia::WARP_EUCLIDEAN;
-    // const int WarpMode = ia::WARP_TRANSLATION;
-    
-    typedef ia::Warp<WarpMode> WarpType;
+    typedef ia::WarpSimilarityF WarpType;
     
     // Choose an alignment strategy
-    typedef ia::AlignInverseCompositional<WarpMode> AlignType;
+    typedef ia::AlignInverseCompositional<WarpType> AlignType;
     // typedef ia::AlignForwardAdditive<ia::WARP_SIMILARITY> AlignType;
     // typedef ia::AlignForwardCompositional<ia::WARP_SIMILARITY> AlignType;
     

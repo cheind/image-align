@@ -41,8 +41,8 @@ namespace imagealign {
         \param s Sampler to use.
         \param w Warp function
      */
-    template<class ChannelType, int SampleMethod, int WarpType>
-    void warpImage(cv::InputArray src_, cv::OutputArray dst_, cv::Size dstSize, const Warp<WarpType> &w, const Sampler<SampleMethod> &s = Sampler<SampleMethod>())
+    template<class ChannelType, int SampleMethod, int WarpType, class Scalar>
+    void warpImage(cv::InputArray src_, cv::OutputArray dst_, cv::Size dstSize, const Warp<WarpType, Scalar> &w, const Sampler<SampleMethod> &s = Sampler<SampleMethod>())
     {
         CV_Assert(src_.channels() == 1);
         
@@ -78,8 +78,8 @@ namespace imagealign {
         \param scaleDown Optional scale down factor. Used with different levels of hierarchy
         \param w Warp function
      */
-    template<class ChannelType, int SampleMethod, int WarpType>
-    void warpImage(cv::InputArray src_, cv::OutputArray dst_, cv::Size dstSize, const Warp<WarpType> &w, float scaleUp, float scaleDown, const Sampler<SampleMethod> &s = Sampler<SampleMethod>())
+    template<class ChannelType, int SampleMethod, int WarpType, class Scalar>
+    void warpImage(cv::InputArray src_, cv::OutputArray dst_, cv::Size dstSize, const Warp<WarpType, Scalar> &w, float scaleUp, float scaleDown, const Sampler<SampleMethod> &s = Sampler<SampleMethod>())
     {
         CV_Assert(src_.channels() == 1);
         
