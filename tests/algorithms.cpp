@@ -253,6 +253,14 @@ public:
         _m -= delta;
     }
     
+    void updateForwardAdditive(const typename Traits::ParamType &delta) {
+        _m += delta;
+    }
+    
+    void updateForwardCompositional(const typename Traits::ParamType &delta) {
+        _m += delta;
+    }
+    
     // Helper functions
     
     void setParameters(const typename Traits::ParamType &p) {
@@ -293,8 +301,14 @@ TEST_CASE("algorithm-dynamic-warp")
         W w;
         w.setParameters(noisy);
         
+        testAlgorithm< ia::AlignForwardAdditive<W> >(tmpl, target, w, 1, expected);
+        testAlgorithm< ia::AlignForwardAdditive<W> >(tmpl, target, w, 2, expected);
+        
         testAlgorithm< ia::AlignInverseCompositional<W> >(tmpl, target, w, 1, expected);
         testAlgorithm< ia::AlignInverseCompositional<W> >(tmpl, target, w, 2, expected);
+        
+        testAlgorithm< ia::AlignForwardCompositional<W> >(tmpl, target, w, 1, expected);
+        testAlgorithm< ia::AlignForwardCompositional<W> >(tmpl, target, w, 2, expected);
     }
     
     // Double precision floating point
@@ -312,8 +326,14 @@ TEST_CASE("algorithm-dynamic-warp")
         W w;
         w.setParameters(noisy);
         
+        testAlgorithm< ia::AlignForwardAdditive<W> >(tmpl, target, w, 1, expected);
+        testAlgorithm< ia::AlignForwardAdditive<W> >(tmpl, target, w, 2, expected);
+        
         testAlgorithm< ia::AlignInverseCompositional<W> >(tmpl, target, w, 1, expected);
         testAlgorithm< ia::AlignInverseCompositional<W> >(tmpl, target, w, 2, expected);
+        
+        testAlgorithm< ia::AlignForwardCompositional<W> >(tmpl, target, w, 1, expected);
+        testAlgorithm< ia::AlignForwardCompositional<W> >(tmpl, target, w, 2, expected);
     }
 
 }
