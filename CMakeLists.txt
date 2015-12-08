@@ -40,6 +40,6 @@ add_executable(tests
     tests/catch.hpp
     tests/warp.cpp
     tests/sampling.cpp
-    tests/forward_additive.cpp
+    tests/algorithms.cpp
 )
 target_link_libraries(tests ialign ${OpenCV_LIBRARIES})
