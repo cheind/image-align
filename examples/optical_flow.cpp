@@ -31,8 +31,30 @@ IA_DISABLE_PRAGMA_WARN_END
     It demonstrates how Image Alignment can be used to perform optical flow.
  */
 
-const int MAX_FEATURES = 500;
+namespace ia = imagealign;
 
+const int MAX_FEATURES = 20;
+
+template<class Scalar>
+cv::Point_<Scalar> toP(const cv::Matx<Scalar, 2, 1> &p) {
+    return cv::Point_<Scalar>(p(0), p(1));
+}
+
+template<int WarpType, class Scalar>
+void drawRectOfTemplate(cv::Mat &img, const ia::Warp<WarpType, Scalar> &w, cv::Size tplSize, cv::Scalar color)
+{
+    typedef typename ia::WarpTraits<WarpType, Scalar>::PointType PointType;
+
+    PointType c0 = w(PointType(Scalar(0.5), Scalar(0.5)));
+    PointType c1 = w(PointType(Scalar(0.5) + tplSize.width, Scalar(0.5)));
+    PointType c2 = w(PointType(Scalar(0.5) + tplSize.width, Scalar(0.5) + tplSize.height));
+    PointType c3 = w(PointType(Scalar(0.5), Scalar(0.5) + tplSize.height));
+
+    cv::line(img, toP(c0), toP(c1), color, 1, CV_AA);
+    cv::line(img, toP(c1), toP(c2), color, 1, CV_AA);
+    cv::line(img, toP(c2), toP(c3), color, 1, CV_AA);
+    cv::line(img, toP(c3), toP(c0), color, 1, CV_AA);
+}
 
 void opticalFlowIA(cv::Mat &prevGray,
                    cv::Mat &gray,
@@ -41,8 +63,8 @@ void opticalFlowIA(cv::Mat &prevGray,
                    std::vector<uchar> &status,
                    std::vector<float> &err)
 {
-    namespace ia = imagealign;
-    
+    const int LEVELS = 3;
+
     // Will be using pure translational motion
     typedef ia::WarpTranslationF WarpType;
     
@@ -51,7 +73,7 @@ void opticalFlowIA(cv::Mat &prevGray,
     
     // We will also make use of the face, that we can share gray among all aligners
     ia::ImagePyramid target;
-    target.create(gray, 3);
+    target.create(gray, LEVELS);
     
     // Create an aligner for each point
     std::vector<AlignType> aligners(prevPoints.size());
@@ -76,37 +98,74 @@ void opticalFlowIA(cv::Mat &prevGray,
         int b = (int)(p.y + windowOff);
         
         // Clamp to region
-        l = std::max<int>(0, l);
-        t = std::max<int>(0, t);
-        r = std::min<int>(gray.cols - 1, r);
-        b = std::min<int>(gray.rows - 1, b);
+        l = std::min<int>(gray.cols - 1, std::max<int>(0, l));
+        t = std::min<int>(gray.rows - 1, std::max<int>(0, t));
+        r = std::min<int>(gray.cols - 1, std::max<int>(0, r));
+        b = std::min<int>(gray.rows - 1, std::max<int>(0, b));
         cv::Rect roi(l, t, r - l, b - t);
+
+        if (roi.area() == 0) {
+            status[i] = 0;
+            continue;
+        }
         
         // Move corner to top left
-        float offsetX = l - p.x;
-        float offsetY = t - p.y;
+        float offsetX = (float)l - p.x;
+        float offsetY = (float)t - p.y;
         
         // Initialize warp
         ia::WarpTranslationF::Traits::ParamType wp(p.x + offsetX, p.y + offsetY);
-        std::cout << wp.t() << std::endl;
         warps[i].setParameters(wp);
-        
+
+        /*
+        cv::imwrite("target.png", gray);
+        cv::imwrite("template.png", prevGray(roi));
+        std::cout << wp << std::endl;
+        std::cout << "----" << std::endl;
+        */
+
+        /*
+        cv::imshow("roi", prevGray(roi));
+        cv::Mat tmp, tmp2;
+        cv::cvtColor(gray, tmp, CV_GRAY2BGR);
+        */
+
         // Initialize aligner
-        aligners[i].prepare(prevGray(roi), target, warps[i], 3);
+        aligners[i].prepare(prevGray(roi), target, warps[i], LEVELS);
         
         // Align
-        int maxIterationsPerLevel[] = {10, 10, 10};
-        aligners[i].align(warps[i], maxIterationsPerLevel);
+        int maxIterationsPerLevel[LEVELS] = {10, 10, 10};
+        //aligners[i].align(warps[i], maxIterationsPerLevel);
+        for (int l = 0; l < LEVELS; ++l) {
+            aligners[i].setLevel(l);
+            for (int iter = 0; iter < maxIterationsPerLevel[l]; ++iter) {
+                aligners[i].align(warps[i]);
+                /*
+
+                wp = warps[i].parameters();
+                
+                tmp.copyTo(tmp2);
+                drawRectOfTemplate(tmp2, warps[i], roi.size(), cv::Scalar(0, 255, 0));
+                cv::imshow("target", tmp2);
+                cv::waitKey();
+                */
+            }
+        }
+
+
         
         // Extract result
         wp = warps[i].parameters();
-        std::cout << wp.t() << std::endl;
-        std::cout << "-----" << std::endl;
         points[i].x = wp(0) - offsetX;
         points[i].y = wp(1) - offsetY;
         err[i] = aligners[i].lastError();
-        status[i] = aligners[i].lastError() < 100.f ? 255 : 0;
+        status[i] = 255; //aligners[i].lastError() < 5000.f ? 255 : 0;
+
+       // drawRectOfTemplate(tmp, warps[i], roi.size(), cv::Scalar(0, 0, 255));
+
     }
+
+    std::cout << "frame" << std::endl;
     
 }
 
