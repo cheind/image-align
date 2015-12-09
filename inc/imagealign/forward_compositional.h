@@ -95,7 +95,7 @@ namespace imagealign {
             _jacobianPyramid.resize(this->numLevels());
             
             for (int i = 0; i < this->numLevels(); ++i) {
-                float sUp = this->scaleUpFactor(i);
+                ScalarType sUp = this->scaleUpFactor(i);
 
                 cv::Size s = this->templateImagePyramid()[i].size();
             

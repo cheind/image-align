@@ -94,7 +94,7 @@ namespace imagealign {
             _invHessians.resize(this->numLevels());
             
             for (int i = 0; i < this->numLevels(); ++i) {
-                float scale = this->scaleUpFactor(i);
+                ScalarType scale = this->scaleUpFactor(i);
                 
                 cv::Mat tpl = this->templateImagePyramid()[i];
                 cv::Size s = tpl.size();

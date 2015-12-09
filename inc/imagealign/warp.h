@@ -453,8 +453,8 @@ namespace imagealign {
             _m(0, 2) = p(0, 0);
             _m(1, 2) = p(1, 0);
             
-            float c = std::cos(p(2, 0));
-            float s = std::sin(p(2, 0));
+            Scalar c = std::cos(p(2, 0));
+            Scalar s = std::sin(p(2, 0));
             
             _m(0,0) = c;
             _m(0,1) = -s;
@@ -483,8 +483,8 @@ namespace imagealign {
             j(0, 0) = Scalar(1);
             j(1, 1) = Scalar(1);
             
-            float c = _m(1, 1); // cos(theta)
-            float s = _m(1, 0); // sin(theta)
+            Scalar c = _m(1, 1); // cos(theta)
+            Scalar s = _m(1, 0); // sin(theta)
             
             j(0, 2) = -s * p(0) - c * p(1);
             j(1, 2) = c * p(0) - s * p(1);
@@ -556,8 +556,8 @@ namespace imagealign {
             _m(0, 2) = p(0, 0);
             _m(1, 2) = p(1, 0);
             
-            float a = p(2, 0);
-            float b = p(3, 0);
+            Scalar a = p(2, 0);
+            Scalar b = p(3, 0);
             
             _m(0,0) = Scalar(1) + a;
             _m(0,1) = -b;
