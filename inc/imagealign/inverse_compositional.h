@@ -24,6 +24,7 @@
 #include <imagealign/sampling.h>
 #include <imagealign/gradient.h>
 #include <opencv2/core/core.hpp>
+#include <iostream>
 
 namespace imagealign {
     
@@ -126,7 +127,7 @@ namespace imagealign {
                         _sdiPyramid[i][idx] = sdi;
                     }
                 }
-                
+
                 // 6. Store inverse Hessian
                 _invHessians[i] = hessian.inv();
                 
@@ -180,6 +181,12 @@ namespace imagealign {
                     // 3. Update b using SDI lookup
                     b += _sdiPyramid[this->level()][idx].t() * err;
                 }
+            }
+
+            if (sumConstraints == 0) {
+                this->setLastError(std::numeric_limits<ScalarType>::max());
+                this->setLastIncrement(W::Traits::zeroParam(w.numParameters()));
+                return;
             }
             
             // 4. Solve Ax = b
