@@ -143,7 +143,7 @@ namespace imagealign {
          
             \param w Current state of warp estimation. Will be modified to hold updated warp.
          */
-        void alignImpl(W &w)
+        bool alignImpl(W &w)
         {
             cv::Mat tpl = this->templateImage();
             cv::Mat target = this->targetImage();
@@ -187,10 +187,10 @@ namespace imagealign {
                 }
             }
 
-            if (sumConstraints == 0) {
-                this->setLastError(std::numeric_limits<ScalarType>::max());
-                this->setLastIncrement(W::Traits::zeroParam(w.numParameters()));
-                return;
+            // Sanity check number of contraints and a decrease in error.
+            ScalarType newError = sumErrors / sumConstraints;
+            if (sumConstraints == 0 || (newError > this->lastError())) {
+                return false;
             }
             
             // 4. Solve Ax = b
@@ -199,8 +199,9 @@ namespace imagealign {
             // 5. Inverse compositional update of warp parameters.
             w.updateInverseCompositional(delta);
             
-            this->setLastError(sumErrors / sumConstraints);
+            this->setLastError(newError);
             this->setLastIncrement(delta);
+            return true;
         }
         
     private:

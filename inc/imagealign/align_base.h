@@ -26,7 +26,7 @@
 
 
 namespace imagealign {
-    
+   
     /** 
         Base class for alignment algorithms.
      
