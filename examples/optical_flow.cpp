@@ -33,7 +33,7 @@ IA_DISABLE_PRAGMA_WARN_END
 
 namespace ia = imagealign;
 
-const int MAX_FEATURES = 20;
+const int MAX_FEATURES = 100;
 
 template<class Scalar>
 cv::Point_<Scalar> toP(const cv::Matx<Scalar, 2, 1> &p) {
@@ -104,7 +104,7 @@ void opticalFlowIA(cv::Mat &prevGray,
         b = std::min<int>(gray.rows - 1, std::max<int>(0, b));
         cv::Rect roi(l, t, r - l, b - t);
 
-        if (roi.area() == 0) {
+        if (roi.area() < 10) {
             status[i] = 0;
             continue;
         }
@@ -122,9 +122,8 @@ void opticalFlowIA(cv::Mat &prevGray,
         cv::imwrite("template.png", prevGray(roi));
         std::cout << wp << std::endl;
         std::cout << "----" << std::endl;
-        */
 
-        /*
+
         cv::imshow("roi", prevGray(roi));
         cv::Mat tmp, tmp2;
         cv::cvtColor(gray, tmp, CV_GRAY2BGR);
@@ -140,10 +139,11 @@ void opticalFlowIA(cv::Mat &prevGray,
             aligners[i].setLevel(l);
             for (int iter = 0; iter < maxIterationsPerLevel[l]; ++iter) {
                 aligners[i].align(warps[i]);
+            
                 /*
+                wp = warps[i].parameters();       
+                std::cout << wp.t() << std::endl;
 
-                wp = warps[i].parameters();
-                
                 tmp.copyTo(tmp2);
                 drawRectOfTemplate(tmp2, warps[i], roi.size(), cv::Scalar(0, 255, 0));
                 cv::imshow("target", tmp2);
@@ -164,8 +164,6 @@ void opticalFlowIA(cv::Mat &prevGray,
        // drawRectOfTemplate(tmp, warps[i], roi.size(), cv::Scalar(0, 0, 255));
 
     }
-
-    std::cout << "frame" << std::endl;
     
 }
 

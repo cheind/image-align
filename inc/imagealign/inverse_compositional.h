@@ -107,7 +107,8 @@ namespace imagealign {
                 int idx = 0;
                 for (int y = 1; y < tpl.rows - 1 ; ++y) {
                     for (int x = 1; x < tpl.cols - 1; ++x, ++idx) {
-                        PointType p(x + ScalarType(0.5), y + ScalarType(0.5));
+                        PointType p;
+                        p << ScalarType(x), ScalarType(y);
                         
                         // 1. Compute the gradient of the template
                         const GradientType grad = gradient<float, SAMPLE_NEAREST, typename W::Traits>(tpl, p);
@@ -150,6 +151,8 @@ namespace imagealign {
             const ScalarType sUp = this->scaleUpFactor(this->level());
             const ScalarType sDown = ScalarType(1) / sUp;
             
+            const VecOfSDI &sdi = _sdiPyramid[this->level()];
+            
             Sampler<SAMPLE_BILINEAR> s;
             
             ParamType b = W::Traits::zeroParam(w.numParameters());
@@ -162,7 +165,8 @@ namespace imagealign {
                 const float *tplRow = tpl.ptr<float>(y);
                 
                 for (int x = 1; x < tpl.cols - 1; ++x, ++idx) {
-                    PointType ptpl(x + ScalarType(0.5), y + ScalarType(0.5));
+                    PointType ptpl;
+                    ptpl << ScalarType(x), ScalarType(y);
                     const float templateIntensity = tplRow[x];
                     
                     // 1. Warp target pixel back to template using w
@@ -179,7 +183,7 @@ namespace imagealign {
                     sumConstraints += 1;
                     
                     // 3. Update b using SDI lookup
-                    b += _sdiPyramid[this->level()][idx].t() * err;
+                    b += sdi[idx].t() * err;
                 }
             }
 

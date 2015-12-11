@@ -356,10 +356,10 @@ namespace imagealign {
     class Warp<WARP_TRANSLATION, Scalar> : public PlanarWarp<WARP_TRANSLATION, Scalar> {
     private:
         using PlanarWarp<WARP_TRANSLATION, Scalar>::_m;
+    public:
         using PlanarWarp<WARP_TRANSLATION, Scalar>::matrix;
         using PlanarWarp<WARP_TRANSLATION, Scalar>::setMatrix;
 
-    public:
         typedef WarpTraits<WARP_TRANSLATION, Scalar> Traits;
         typedef typename Traits::PointType PointType;
         typedef typename Traits::ParamType ParamType;
@@ -433,10 +433,11 @@ namespace imagealign {
     class Warp<WARP_EUCLIDEAN, Scalar> : public PlanarWarp<WARP_EUCLIDEAN, Scalar> {
     private:
         using PlanarWarp<WARP_EUCLIDEAN, Scalar>::_m;
+       
+    public:
+
         using PlanarWarp<WARP_EUCLIDEAN, Scalar>::matrix;
         using PlanarWarp<WARP_EUCLIDEAN, Scalar>::setMatrix;
-        
-    public:
         
         typedef WarpTraits<WARP_EUCLIDEAN, Scalar> Traits;
         typedef typename Traits::PointType PointType;
@@ -535,11 +536,11 @@ namespace imagealign {
     template<class Scalar>
     class Warp<WARP_SIMILARITY, Scalar> : public PlanarWarp<WARP_SIMILARITY, Scalar> {
     private:
-        using PlanarWarp<WARP_SIMILARITY, Scalar>::_m;
+        using PlanarWarp<WARP_SIMILARITY, Scalar>::_m;        
+    public:
+
         using PlanarWarp<WARP_SIMILARITY, Scalar>::matrix;
         using PlanarWarp<WARP_SIMILARITY, Scalar>::setMatrix;
-        
-    public:
         
         typedef WarpTraits<WARP_SIMILARITY, Scalar> Traits;
         typedef typename Traits::PointType PointType;

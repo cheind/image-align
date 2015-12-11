@@ -75,8 +75,6 @@ namespace imagealign {
         template<class ChannelType, class Scalar>
         inline ChannelType sample(const cv::Mat &img, Scalar x, Scalar y) const
         {
-            x -= Scalar(0.5);
-            y -= Scalar(0.5);
             
             const int ix = static_cast<int>(std::floor(x));
             const int iy = static_cast<int>(std::floor(y));
@@ -88,11 +86,14 @@ namespace imagealign {
             
             Scalar a = x - (Scalar)ix;
             Scalar b = y - (Scalar)iy;
-            
-            const ChannelType f0 = img.at<ChannelType>(y0, x0);
-            const ChannelType f1 = img.at<ChannelType>(y0, x1);
-            const ChannelType f2 = img.at<ChannelType>(y1, x0);
-            const ChannelType f3 = img.at<ChannelType>(y1, x1);
+
+            const ChannelType *ptrY0 = img.ptr<ChannelType>(y0);
+            const ChannelType *ptrY1 = img.ptr<ChannelType>(y1);
+
+            const ChannelType f0 = ptrY0[x0];
+            const ChannelType f1 = ptrY0[x1];
+            const ChannelType f2 = ptrY1[x0];
+            const ChannelType f3 = ptrY1[x1];
             
             return cv::saturate_cast<ChannelType>((f0 * (Scalar(1) - a) + f1 * a) * (Scalar(1) - b) +
                                                   (f2 * (Scalar(1) - a) + f3 * a) * b);
@@ -124,9 +125,6 @@ namespace imagealign {
         template<class ChannelType, class Scalar>
         inline ChannelType sample(const cv::Mat &img, Scalar x, Scalar y) const
         {
-            x -= Scalar(0.5);
-            y -= Scalar(0.5);
-            
             const int ix = static_cast<int>(std::floor(x));
             const int iy = static_cast<int>(std::floor(y));
             

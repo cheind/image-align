@@ -40,9 +40,16 @@ namespace imagealign {
     */
     class ImagePyramid {
     public:
+
+        inline ImagePyramid()
+        {}
+
+        inline explicit ImagePyramid(const std::vector<cv::Mat> &imgs) 
+            :_pyr(imgs)
+        {}
         
         /** Create image pyramid from image. */
-        void create(cv::InputArray img, int levels) {
+        inline void create(cv::InputArray img, int levels) {
             
             levels = std::max<int>(levels, 1);
             _pyr.resize(levels);
@@ -57,25 +64,33 @@ namespace imagealign {
             // By convention: coarser levels are lower numbers.
             std::reverse(_pyr.begin(), _pyr.end());
         }
+
+        inline ImagePyramid slice(int startLevel, int numLevels) const {
+            std::vector<cv::Mat> imgs;
+            for (int i = startLevel; i < (startLevel + numLevels); ++i) {
+                imgs.push_back(_pyr[i]);
+            }
+            return ImagePyramid(imgs);
+        }
         
         /**
             Access the number of levels in the pyramid
          */
-        int numLevels() const {
+        inline int numLevels() const {
             return (int)_pyr.size();
         }
         
         /** 
             Return the image corresponding to the i-th level.
          */
-        cv::Mat operator[](size_t level) const {
+        inline cv::Mat operator[](size_t level) const {
             return _pyr[level];
         }
         
         /** 
             Return the maximum number of levels for image size.
         */
-        static int maxLevelsForImageSize(cv::Size s) {
+        inline static int maxLevelsForImageSize(cv::Size s) {
             int level = 0;
             while (s.width >= 10 && s.height >= 10) {
                 s.width /= 2;

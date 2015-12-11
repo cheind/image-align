@@ -80,7 +80,7 @@ namespace imagealign {
             _levels = std::max<int>(1, std::min<int>(pyramidLevels, maxLevels));
             
             _templatePyramid.create(tmpl, _levels);
-            _targetPyramid.create(target, _levels);
+            _targetPyramid.create(target, _levels);            
             
             _inc = W::Traits::zeroParam(w.numParameters());
             _iter = 0;
@@ -116,11 +116,16 @@ namespace imagealign {
             // Sanitize levels
             int maxLevels = std::min<int>(ImagePyramid::maxLevelsForImageSize(tmpl.size()),
                                           target.numLevels());
-            
+
             _levels = std::max<int>(1, std::min<int>(pyramidLevels, maxLevels));
-            
             _templatePyramid.create(tmpl, _levels);
-            _targetPyramid = target;
+
+            if (target.numLevels() > _levels) {
+                int off = target.numLevels() - _levels;
+                _targetPyramid = target.slice(off, _levels);
+            } else {
+                _targetPyramid = target;
+            }
             
             _inc = W::Traits::zeroParam(w.numParameters());
             _iter = 0;
