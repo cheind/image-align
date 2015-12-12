@@ -1,0 +1,14 @@
+# Jacobian derivation for similarity transform with scaling
+
+from __future__ import division
+from sympy import *
+
+tx, ty, s, x, y, a, b = symbols('tx ty s x y a b')
+
+U = Matrix(([1, 0, 0.5], [0, 1, 0.5], [0, 0, 1])) * Matrix(([s, 0, 0], [0, s, 0], [0, 0, 1])) * Matrix(([1, 0, -0.5],[0, 1, -0.5],[0,0,1]));
+D = Matrix(([1, 0, 0.5], [0, 1, 0.5], [0, 0, 1])) * Matrix(([1.0/s, 0, 0], [0, 1.0/s, 0], [0, 0, 1])) * Matrix(([1, 0, -0.5],[0,1,-0.5],[0,0,1]));
+W = Matrix(([1+a, b, tx], [b, 1+a, ty], [0, 0, 1]))
+p = Matrix(([x], [y], [1]))
+
+q = (D * W * U * p)[0:2, :]
+q.jacobian(Matrix([tx, ty, a, b]))

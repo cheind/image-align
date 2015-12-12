@@ -84,7 +84,7 @@ namespace imagealign {
          
             \param w Current state of warp estimation. Will be modified to hold updated warp.
          */
-        void alignImpl(W &w)
+        SingleStepResult<W> alignImpl(const W &w)
         {
             cv::Mat tpl = this->templateImage();
             cv::Mat target = this->targetImage();
@@ -105,7 +105,9 @@ namespace imagealign {
                 const float *tplRow = tpl.ptr<float>(y);
                 
                 for (int x = 1; x < tpl.cols - 1; ++x) {
-                    PointType ptpl(x + ScalarType(0.5), y + ScalarType(0.5));
+                    PointType ptpl;
+                    ptpl << ScalarType(x), ScalarType(y);
+                    
                     const float templateIntensity = tplRow[x];
                     
                     PointType ptplOrig = ptpl * sUp;
@@ -143,11 +145,16 @@ namespace imagealign {
             // 8. Solve Ax = b
             ParamType delta = hessian.inv() * b;
             
-            // 9. Additive update of warp parameters.
-            w.updateForwardAdditive(delta);
+            SingleStepResult<W> step;
+            step.delta = delta;
+            step.sumErrors = sumErrors;
+            step.numConstraints = sumConstraints;
             
-            this->setLastError(sumErrors / sumConstraints);
-            this->setLastIncrement(delta);
+            return step;
+        }
+        
+        void applyStep(W &w, const SingleStepResult<W> &s) {
+            w.updateForwardAdditive(s.delta);
         }
         
     private:

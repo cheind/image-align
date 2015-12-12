@@ -61,8 +61,6 @@ namespace imagealign {
                 cv::pyrDown(_pyr[i-1], _pyr[i]);
             }
             
-            // By convention: coarser levels are lower numbers.
-            std::reverse(_pyr.begin(), _pyr.end());
         }
 
         inline ImagePyramid slice(int startLevel, int numLevels) const {

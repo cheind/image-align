@@ -122,7 +122,7 @@ int main(int argc, char **argv)
     
     // Choose an alignment strategy
     typedef ia::AlignInverseCompositional<WarpType> AlignType;
-    //typedef ia::AlignForwardAdditive<WarpType> AlignType;
+    // typedef ia::AlignForwardAdditive<WarpType> AlignType;
     // typedef ia::AlignForwardCompositional<WarpType> AlignType;
     
     
@@ -168,28 +168,12 @@ int main(int argc, char **argv)
         AlignType at;
         at.prepare(tpl, target, w, levels);
         
-        int iterationsPerLevel[] = {10, 10, 10};
-        int iterationsPerformed[] = {0, 0, 0};
-        
         int64 e1 = cv::getTickCount();
-        
-        for (int i = 0; i < levels; ++i) {
-            at.setLevel(i);
-            
-            while (iterationsPerformed[i] < iterationsPerLevel[i] &&
-                   at.errorChange() > 0.f &&
-                   (iterationsPerformed[i] == 0 || cv::norm(at.lastIncrement()) > 0.01f))
-            {
-                at.align(w);
-                incrementals.push_back(w);
-                ++iterationsPerformed[i];
-            }
-            
-        }
+        at.align(w, 30, 0.003, &incrementals);
         
         double elapsed = (cv::getTickCount() - e1) / cv::getTickFrequency();
         
-        std::cout << "Completed after [" << iterationsPerformed[0] << "," << iterationsPerformed[1] << "," << iterationsPerformed[2] << "] iterations. "
+        std::cout << "Completed after " << incrementals.size() << "iterations. "
                   << "Last error: " << at.lastError() << " "
                   << "Took " << elapsed << " seconds." << std::endl;
         

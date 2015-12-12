@@ -65,27 +65,12 @@ void runReg(int id, float x, float y)
     // cv::Mat wtarget;
     // ia::warpImage<uchar, ia::SAMPLE_BILINEAR>(target, wtarget, tpl.size(), w);
     // cv::imshow("wtpl", wtarget);
+    
+    std::vector<W> incrementals;
 
     A a;
     a.prepare(tpl, target, w, 3);
-
-
-    for (int l = 0; l < 3; ++l) {
-        a.setLevel(l);
-        for (int i = 0; i < 10; ++i) {
-            a.align(w);
-            p = w.parameters();
-            std::cout << l << " " << p.t() << std::endl;
-
-            cv::Mat t;
-            cv::cvtColor(target, t, CV_GRAY2BGR);
-            drawRectOfTemplate(t, w, tpl.size(), cv::Scalar(0, 255, 0));
-            cv::imshow("target", t);
-            cv::imshow("tpl", tpl);
-            cv::waitKey();
-
-        }
-    }
+    a.align(w, 30, 0.003f, &incrementals);
 }
 
 TEST_CASE("regression1")

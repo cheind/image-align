@@ -131,35 +131,14 @@ void opticalFlowIA(cv::Mat &prevGray,
 
         // Initialize aligner
         aligners[i].prepare(prevGray(roi), target, warps[i], LEVELS);
-        
-        // Align
-        int maxIterationsPerLevel[LEVELS] = {10, 10, 10};
-        //aligners[i].align(warps[i], maxIterationsPerLevel);
-        for (int l = 0; l < LEVELS; ++l) {
-            aligners[i].setLevel(l);
-            for (int iter = 0; iter < maxIterationsPerLevel[l]; ++iter) {
-                aligners[i].align(warps[i]);
-            
-                /*
-                wp = warps[i].parameters();       
-                std::cout << wp.t() << std::endl;
+        aligners[i].align(warps[i], 30, 0.003f);
 
-                tmp.copyTo(tmp2);
-                drawRectOfTemplate(tmp2, warps[i], roi.size(), cv::Scalar(0, 255, 0));
-                cv::imshow("target", tmp2);
-                cv::waitKey();
-                */
-            }
-        }
-
-
-        
         // Extract result
         wp = warps[i].parameters();
         points[i].x = wp(0) - offsetX;
         points[i].y = wp(1) - offsetY;
         err[i] = aligners[i].lastError();
-        status[i] = 255; //aligners[i].lastError() < 5000.f ? 255 : 0;
+        status[i] = err[i] < 20*20;
 
        // drawRectOfTemplate(tmp, warps[i], roi.size(), cv::Scalar(0, 0, 255));
 
@@ -250,8 +229,8 @@ int main(int argc, char **argv)
             std::vector<float> err;
             
             // Perform optical flow
-            opticalFlowIA(prevGray, gray, points[0], points[1], status, err);
-            //opticalFlowCV(prevGray, gray, points[0], points[1], status, err);
+            //opticalFlowIA(prevGray, gray, points[0], points[1], status, err);
+            opticalFlowCV(prevGray, gray, points[0], points[1], status, err);
             drawOpticalFlow(image, points[0], points[1], status);
             
             // Draw optical flow results

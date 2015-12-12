@@ -26,8 +26,19 @@
 
 
 namespace imagealign {
+    
+    template<class W>
+    struct SingleStepResult {
+        typename W::Traits::ParamType delta;
+        typename W::Traits::ScalarType sumErrors;
+        int numConstraints;
+        
+        SingleStepResult()
+         : numConstraints(0)
+        {}
+    };
    
-    /** 
+    /**
         Base class for alignment algorithms.
      
         This class provides a common interface for alignment algorithms. It simplifies code
@@ -82,8 +93,6 @@ namespace imagealign {
             _templatePyramid.create(tmpl, _levels);
             _targetPyramid.create(target, _levels);            
             
-            _inc = W::Traits::zeroParam(w.numParameters());
-            _iter = 0;
             setLevel(0);
             
             // Invoke prepare of derived
@@ -121,63 +130,15 @@ namespace imagealign {
             _templatePyramid.create(tmpl, _levels);
 
             if (target.numLevels() > _levels) {
-                int off = target.numLevels() - _levels;
-                _targetPyramid = target.slice(off, _levels);
+                _targetPyramid = target.slice(0, _levels);
             } else {
                 _targetPyramid = target;
             }
             
-            _inc = W::Traits::zeroParam(w.numParameters());
-            _iter = 0;
             setLevel(0);
             
             // Invoke prepare of derived
             static_cast<D*>(this)->prepareImpl(w);
-        }
-        
-        /**
-            Perform a single alignment step.
-         
-            This method takes the current state of the warp parameters and refines
-            them by minimizing the energy function of the derived class.
-         
-            \param w Current state of warp estimation. Will be modified to hold result.
-         */
-        SelfType &align(W &w)
-        {
-            static_cast<D*>(this)->alignImpl(w);
-            ++_iter;
-            
-            return *this;
-        }
-        
-        /**
-            Perform multiple alignment iterations until a stopping criterium is reached.
-         
-            This method takes the current state of the warp parameters and refines
-            them by minimizing the energy function of the derived class. All iterations 
-            are performed on the same level.
-         
-            The method stops when 
-                - the number of iterations is reached or
-                - the norm of the last increment falls below eps.
-         
-            \param w Current state of warp estimation. Will be modified to hold result.
-            \param maxIterations Stops after maxIterations have been performed.
-            \param eps Minimum norm of last increment.
-         */
-        SelfType &align(W &w, int maxIterations, ScalarType eps)
-        {
-            
-            align(w);
-            int iter = 0;
-            while (++iter <= maxIterations &&
-                   cv::norm(lastIncrement()) >= eps)
-            {
-                align(w);
-            }
-            
-            return *this;
         }
         
         /**
@@ -191,49 +152,49 @@ namespace imagealign {
             number of pyramid levels.
          
             The algorithm starts at the coarsest pyramid and iterates until either
-            maxIterations for the current level is reached or an increase in error 
-            is observed. Once a stopping criterium is met, the algorithm breaks to 
+            maxIterations for the current level is reached or an increase in error
+            is observed. Once a stopping criterium is met, the algorithm breaks to
             the next finer pyramid level.
          
             \param w Current state of warp estimation. Will be modified to hold result.
             \param maxIterationsPerLevel Maximum number of iterations per pyramid level (from coarse to fine).
          */
-        SelfType &align(W &w, const int *maxIterationsPerLevel)
+        SelfType &align(W &w, int maxIterations, ScalarType eps, std::vector<W> *steps = 0)
         {
+            int iterationsPerLevel = maxIterations / numLevels();
             
-            for (int i = 0; i < numLevels(); ++i) {
-                this->setLevel(i);
+            // Start at the coarsest level
+            for (int lev = numLevels() - 1; lev >= 0; --lev) {
+                setLevel(lev);
                 
-                int iter = 0;
-                while (iter++ < maxIterationsPerLevel[i] && this->errorChange() > ScalarType(0)) {
-                    this->align(w);
+                for (int iter = 0; iter < iterationsPerLevel; ++iter) {
+                    
+                    SingleStepResult<W> s = static_cast<D*>(this)->alignImpl(w);
+                    
+                    const ScalarType newError = s.sumErrors / ScalarType(s.numConstraints);
+                    const ScalarType errorChange = lastError() - newError;
+                    
+                    if (s.numConstraints > 0 &&
+                        errorChange > ScalarType(0) &&
+                        (ScalarType)cv::norm(s.delta) > eps)
+                    {
+                        static_cast<D*>(this)->applyStep(w, s);
+                        _error = newError;
+                        
+                        if (steps) steps->push_back(w);
+                        
+                    } else {
+                        // Next level
+                        break;
+                    }
                 }
             }
             
-            return *this;
-        }
-        
-        /**
-            Switch to another hierarchy level.
-        */
-        SelfType &setLevel(int level) {
             
-            level = std::max<int>(0, std::min<int>(level, numLevels() - 1));
-            _level = level;
-            
-            // Errors between levels are not compatible.
-            _error = std::numeric_limits<ScalarType>::max();
-            _errorChange = std::numeric_limits<ScalarType>::max();
             
             return *this;
         }
-        
-        /** 
-            Return current hierarchy level.
-         */
-        int level() const {
-            return _level;
-        }
+    
         
         /** 
             Return the total number of levels.
@@ -251,47 +212,23 @@ namespace imagealign {
             return _error;
         }
         
-        /**
-            Return the error change.
-         
-            The error change is calculated as the difference of previous error - current error. 
-            A positive value signals a decrease in error, while a negative one corresponds to 
-            an increase of error.
-         
-            \return the error change.
-         */
-        ScalarType errorChange() const {
-            return _errorChange;
-        }
-        
-        /**
-            Access the number of iterations performed.
-         
-            The number of iterations is counted from last invocation of prepare and is independent
-            of switches in hierarchy levels.
-        */
-        int iteration() const {
-            return _iter;
-        }
-        
-        /** 
-            Access the incremental warp parameter update from last iteration.
-        */
-        typename W::Traits::ParamType lastIncrement() const {
-            return _inc;
-        }
-        
     protected:
         
         typedef typename W::Traits::PointType PointType;
-        
-        void setLastError(ScalarType err) {
-            _errorChange = _error - err;
-            _error = err;
+    
+        int level() const {
+            return _level;
         }
-        
-        void setLastIncrement(typename W::Traits::ParamType &inc) {
-            _inc = inc;
+
+        SelfType &setLevel(int level) {
+            
+            level = std::max<int>(0, std::min<int>(level, numLevels() - 1));
+            _level = level;
+            
+            // Errors between levels are not compatible.
+            _error = std::numeric_limits<ScalarType>::max();
+            
+            return *this;
         }
         
         cv::Mat templateImage() {
@@ -311,7 +248,7 @@ namespace imagealign {
         }
         
         ScalarType scaleUpFactor(int level) const {
-            return std::pow(ScalarType(2), (ScalarType)numLevels() - level - 1);
+            return std::pow(ScalarType(2), level);
         }
         
         ScalarType scaleDownFactor(int level) const {
@@ -343,10 +280,7 @@ namespace imagealign {
         
         int _levels;
         int _level;
-        int _iter;
         ScalarType _error;
-        ScalarType _errorChange;
-        typename W::Traits::ParamType _inc;
     };
     
     

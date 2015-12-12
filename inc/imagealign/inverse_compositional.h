@@ -143,7 +143,7 @@ namespace imagealign {
          
             \param w Current state of warp estimation. Will be modified to hold updated warp.
          */
-        bool alignImpl(W &w)
+        SingleStepResult<W>  alignImpl(W &w)
         {
             cv::Mat tpl = this->templateImage();
             cv::Mat target = this->targetImage();
@@ -186,22 +186,21 @@ namespace imagealign {
                     b += sdi[idx].t() * err;
                 }
             }
-
-            // Sanity check number of contraints and a decrease in error.
-            ScalarType newError = sumErrors / sumConstraints;
-            if (sumConstraints == 0 || (newError > this->lastError())) {
-                return false;
-            }
             
             // 4. Solve Ax = b
             ParamType delta = _invHessians[this->level()] * b;
             
-            // 5. Inverse compositional update of warp parameters.
-            w.updateInverseCompositional(delta);
+            SingleStepResult<W> step;
+            step.delta = delta;
+            step.sumErrors = sumErrors;
+            step.numConstraints = sumConstraints;
             
-            this->setLastError(newError);
-            this->setLastIncrement(delta);
-            return true;
+            return step;
+        }
+        
+        
+        void applyStep(W &w, const SingleStepResult<W> &s) {
+            w.updateInverseCompositional(s.delta);
         }
         
     private:
