@@ -38,14 +38,14 @@ TEST_CASE("sampling-bilinear")
     typedef cv::Matx<double, 2, 1> PointType;
     
     // Pixel centers
-    REQUIRE(s.sample<uchar>(img, PointType(0.5, 0.5)) == 0);
-    REQUIRE(s.sample<uchar>(img, PointType(0.5, 1.5)) == 128);
-    REQUIRE(s.sample<uchar>(img, PointType(1.5, 0.5)) == 64);
-    REQUIRE(s.sample<uchar>(img, PointType(1.5, 1.5)) == 192);
+    REQUIRE(s.sample<uchar>(img, PointType(0.0, 0.0)) == 0);
+    REQUIRE(s.sample<uchar>(img, PointType(0.0, 1.0)) == 128);
+    REQUIRE(s.sample<uchar>(img, PointType(1.0, 0.0)) == 64);
+    REQUIRE(s.sample<uchar>(img, PointType(1.0, 1.0)) == 192);
 
     // Off-centers
-    REQUIRE(s.sample<uchar>(img, PointType(1.0, 0.5)) == 32);
-    REQUIRE(s.sample<uchar>(img, PointType(1.0, 1.0)) == 96);
+    REQUIRE(s.sample<uchar>(img, PointType(0.5, 0.0)) == 32);
+    REQUIRE(s.sample<uchar>(img, PointType(0.5, 0.5)) == 96);
 }
 
 TEST_CASE("sampling-nearest")
@@ -64,14 +64,14 @@ TEST_CASE("sampling-nearest")
     typedef cv::Matx<double, 2, 1> PointType;
     
     // Pixel centers
-    REQUIRE(s.sample<uchar>(img, PointType(0.5, 0.5)) == 0);
-    REQUIRE(s.sample<uchar>(img, PointType(0.5, 1.5)) == 128);
-    REQUIRE(s.sample<uchar>(img, PointType(1.5, 0.5)) == 64);
-    REQUIRE(s.sample<uchar>(img, PointType(1.5, 1.5)) == 192);
+    REQUIRE(s.sample<uchar>(img, PointType(0.0, 0.0)) == 0);
+    REQUIRE(s.sample<uchar>(img, PointType(0.0, 1.0)) == 128);
+    REQUIRE(s.sample<uchar>(img, PointType(1.0, 0.0)) == 64);
+    REQUIRE(s.sample<uchar>(img, PointType(1.0, 1.0)) == 192);
     
     // Off-centers
-    REQUIRE(s.sample<uchar>(img, PointType(1.0, 0.5)) == 0);
-    REQUIRE(s.sample<uchar>(img, PointType(1.0, 1.0)) == 0);
-    REQUIRE(s.sample<uchar>(img, PointType(1.6, 0.5)) == 64);
+    REQUIRE(s.sample<uchar>(img, PointType(0.5, 0.0)) == 0);
+    REQUIRE(s.sample<uchar>(img, PointType(0.5, 0.5)) == 0);
+    REQUIRE(s.sample<uchar>(img, PointType(1.1, 0.0)) == 64);
 
 }

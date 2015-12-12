@@ -73,6 +73,7 @@ void runReg(int id, float x, float y)
     a.align(w, 30, 0.003f, &incrementals);
 }
 
+/*
 TEST_CASE("regression1")
 {
     runReg(1, 267.f, 237.f);
@@ -86,4 +87,4 @@ TEST_CASE("regression2")
 TEST_CASE("regression3")
 {
     runReg(3, 580.f, 153.f);
-}
+}*/
