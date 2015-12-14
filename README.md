@@ -5,7 +5,7 @@
 ![Image Align under Euclidean Motion](etc/euclidean.gif)
 
 The project emerged while working on [AAM](https://www.github.com/cheind/aam), an active appearance models library. Fitting active appearance models is
-similar to the classic image alignment problem: 
+similar to the classic image alignment problem:
 
 > The goal of image alignment is to find the locally 'best' transform between a template image and a target image by minimizing an energy function measuring the fitness of the alignment. -- <cite>Ian Matthews</cite>
 
@@ -22,11 +22,11 @@ For convergence and runtime reasons all algorithms support **multi-level hierarc
 The alignment algorithms are independent of the chosen warp function. Currently the library provides the following warp modes:
 
  - 2D Translational Warp
- - 2D Euclidean Warp 
+ - 2D Euclidean Warp
  - 2D Similarity Warp
  - 2D Affine Warp
 
-User defined warp functions can be easily added. 
+User defined warp functions can be easily added.
 
 # Usage
 
@@ -63,14 +63,13 @@ WarpType w;
 AlignType a;
 
 // Prepare for alignment using 3 levels of hierarchy
-a.prepare(tpl, target, 3);
+a.prepare(tpl, target, w, 3);
 
-// Align
-int maxIterationsPerLevel[] = {30, 30, 15};
-a.align(w, maxIterationsPerLevel);
+// Perform iterative alignment over all levels in hierarchy.
+a.align(w, 30, 0.003);
 ```
 
-When alignment has finished, ``w`` will hold the warp that best aligns the template image with the target image. 
+When alignment has finished, ``w`` will hold the warp that best aligns the template image with the target image.
 
 Please note, Lucas-Kanade methods are locally operating methods that require a good guess of true warp parameters to converge. To provide a guess, simple adjust the parameters of ``w`` using methods such as ``w.setParameters()`` and similar before calling ``a.align()``.
 
@@ -80,20 +79,21 @@ Please note, Lucas-Kanade methods are locally operating methods that require a g
 **Image Alignment** requires the following pre-requisites
 
  - [CMake](www.cmake.org) - for generating cross platform build files
- - [OpenCV 2.x / 3.x](www.opencv.org) - for image processing related functions 
- 
+ - [OpenCV 2.x / 3.x](www.opencv.org) - for image processing related functions
+
 To build from source
 
  1. Point CMake to the cloned git repository
  1. Click CMake Configure
  1. Point `OpenCV_DIR` to the directory containing the file `OpenCVConfig.cmake`
+ 1. Activate / Deactivate `IMAGEALIGN_USE_OPENMP`
  1. Click CMake Generate
- 
+
 Although **Image Alignment** should build across multiple platforms and architectures, tests are carried out on these systems
- - Windows 8/10 MSVC10 x64
+ - Windows 8/10 MSVC10 / MSVC12 x64
  - OS X 10.10 XCode 7.x x64
 
-If the build should fail for a specific platform, don't hesitate to create an issue. 
+If the build should fail for a specific platform, don't hesitate to create an issue.
 
 # References
 
