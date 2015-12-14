@@ -57,7 +57,7 @@ namespace imagealign {
             ChannelType *r = dst.ptr<ChannelType>(y);
             
             for (int x = 0; x < dstSize.width; ++x) {
-                PointType wp = w(PointType(x, y));
+                PointType wp = w(PointType(Scalar(x), Scalar(y)));
                 r[x] = s.template sample<ChannelType>(src, wp);
             }
         }
@@ -96,7 +96,7 @@ namespace imagealign {
             ChannelType *r = dst.ptr<ChannelType>(y);
             
             for (int x = 0; x < dstSize.width; ++x) {
-                PointType wp = w(PointType(x, y) * scaleUp) * scaleDown;
+                PointType wp = w(PointType(Scalar(x), Scalar(y)) * scaleUp) * scaleDown;
                 r[x] = s.template sample<ChannelType>(src, wp);
             }
         }
