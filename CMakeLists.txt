@@ -10,6 +10,16 @@ endif()
 
 find_package(OpenCV REQUIRED)
 
+set(IMAGEALIGN_USE_OPENMP OFF CACHE BOOL "Build Image Align with OpenMP support")
+if(IMAGEALIGN_USE_OPENMP)
+  find_package(OpenMP)
+  if (OPENMP_FOUND)
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+    message(STATUS "Compiling with OpenMP support")
+  endif()
+endif()
+
 include_directories(${CMAKE_CURRENT_BINARY_DIR} ${OpenCV_INCLUDE_DIRS} "inc")
 
 # Library

@@ -163,33 +163,38 @@ namespace imagealign {
         {
             int iterationsPerLevel = maxIterations / numLevels();
             
-            // Start at the coarsest level
+            // Start at the coarsest level + 1
+            W ws = w.scaled(-numLevels());
+
             for (int lev = numLevels() - 1; lev >= 0; --lev) {
                 setLevel(lev);
-                
+                ws = ws.scaled(1); // Scale up
+
                 for (int iter = 0; iter < iterationsPerLevel; ++iter) {
                     
-                    SingleStepResult<W> s = static_cast<D*>(this)->alignImpl(w);
+                    SingleStepResult<W> s = static_cast<D*>(this)->alignImpl(ws);
                     
                     const ScalarType newError = s.sumErrors / ScalarType(s.numConstraints);
                     const ScalarType errorChange = lastError() - newError;
-                    
+                   
                     if (s.numConstraints > 0 &&
-                        errorChange > ScalarType(0) &&
-                        (ScalarType)cv::norm(s.delta) > eps)
+                        errorChange >= ScalarType(0) &&
+                        (iter == 0 || (ScalarType)cv::norm(s.delta) >= eps))
                     {
-                        static_cast<D*>(this)->applyStep(w, s);
+                        static_cast<D*>(this)->applyStep(ws, s);
                         _error = newError;
                         
-                        if (steps) steps->push_back(w);
+                        if (steps) steps->push_back(ws.scaled(lev));
                         
                     } else {
                         // Next level
                         break;
                     }
                 }
+                
+
             }
-            
+            w = ws;
             
             
             return *this;
@@ -245,14 +250,6 @@ namespace imagealign {
         
         ImagePyramid &targetImagePyramid() {
             return _targetPyramid;
-        }
-        
-        ScalarType scaleUpFactor(int level) const {
-            return std::pow(ScalarType(2), level);
-        }
-        
-        ScalarType scaleDownFactor(int level) const {
-            return ScalarType(1) / this->scaleUpFactor(level);
         }
         
         /**

@@ -95,7 +95,6 @@ namespace imagealign {
             _jacobianPyramid.resize(this->numLevels());
             
             for (int i = 0; i < this->numLevels(); ++i) {
-                ScalarType sUp = this->scaleUpFactor(i);
 
                 cv::Size s = this->templateImagePyramid()[i].size();
             
@@ -104,9 +103,11 @@ namespace imagealign {
                 int idx = 0;
                 for (int y = 1; y < s.height - 1; ++y) {
                     for (int x = 1; x < s.width - 1; ++x, ++idx) {
-                        _jacobianPyramid[i][idx] = w0.jacobian(PointType(x + ScalarType(0.5), y + ScalarType(0.5)) * sUp);
+                        _jacobianPyramid[i][idx] = w0.jacobian(PointType(ScalarType(x), ScalarType(y)));
                     }
                 }
+
+                w0 = w0.scaled(-1);
             }
         }
         
@@ -123,13 +124,10 @@ namespace imagealign {
             cv::Mat tpl = this->templateImage();
             cv::Mat target = this->targetImage();
             
-            const ScalarType sUp = this->scaleUpFactor(this->level());
-            const ScalarType sDown = ScalarType(1) / sUp;
-            
             // Computing the gradient happens on the warped image. Since evaluating the
             // the gradient in both directions takes 4 bilinear lookups, we are better off
             // warping the entire target image explicitely here.
-            warpImage<float, SAMPLE_BILINEAR>(target, _warpedTargetImage, tpl.size(), w, sUp, sDown);
+            warpImage<float, SAMPLE_BILINEAR>(target, _warpedTargetImage, tpl.size(), w);
             
             HessianType hessian = W::Traits::zeroHessian(w.numParameters());
             ParamType b = W::Traits::zeroParam(w.numParameters());

@@ -237,6 +237,14 @@ public:
     void setIdentity() {
         _m.setTo(0);
     }
+
+    Warp<WARP_TRANSLATION_DYAMIC, Scalar> scaled(int numLevels) const
+    {
+        Scalar s = std::pow(Scalar(2), numLevels);
+        Warp<WARP_TRANSLATION_DYAMIC, Scalar> ws(*this);
+        ws._m *= s;
+        return ws;
+    }
     
     typename Traits::PointType operator()(const typename Traits::PointType &p) const {
         return typename Traits::PointType(p(0) + _m(0,0), p(1) + _m(1, 0));

@@ -86,7 +86,8 @@ void opticalFlowIA(cv::Mat &prevGray,
     status.resize(prevPoints.size());
     err.resize(prevPoints.size());
     
-    for (size_t i = 0; i < aligners.size(); ++i) {
+    #pragma omp parallel for
+    for (int i = 0; i < (int)aligners.size(); ++i) {
         
         // The template will be a rectangular region around the point
         const int windowOff = 15;
@@ -117,31 +118,16 @@ void opticalFlowIA(cv::Mat &prevGray,
         ia::WarpTranslationF::Traits::ParamType wp(p.x + offsetX, p.y + offsetY);
         warps[i].setParameters(wp);
 
-        /*
-        cv::imwrite("target.png", gray);
-        cv::imwrite("template.png", prevGray(roi));
-        std::cout << wp << std::endl;
-        std::cout << "----" << std::endl;
-
-
-        cv::imshow("roi", prevGray(roi));
-        cv::Mat tmp, tmp2;
-        cv::cvtColor(gray, tmp, CV_GRAY2BGR);
-        */
-
         // Initialize aligner
         aligners[i].prepare(prevGray(roi), target, warps[i], LEVELS);
-        aligners[i].align(warps[i], 30, 0.003f);
+        aligners[i].align(warps[i], 20, 0.03f);
 
         // Extract result
         wp = warps[i].parameters();
         points[i].x = wp(0) - offsetX;
         points[i].y = wp(1) - offsetY;
         err[i] = aligners[i].lastError();
-        status[i] = err[i] < 20*20;
-
-       // drawRectOfTemplate(tmp, warps[i], roi.size(), cv::Scalar(0, 0, 255));
-
+        status[i] = err[i] < 40*40;
     }
     
 }
@@ -154,7 +140,7 @@ void opticalFlowCV(cv::Mat &prevGray,
                    std::vector<float> &err)
 {
     cv::TermCriteria termcrit(cv::TermCriteria::COUNT|cv::TermCriteria::EPS,20,0.03);
-    cv::Size subPixWinSize(10,10), winSize(31,31);
+    cv::Size winSize(31,31);
     
     calcOpticalFlowPyrLK(prevGray, gray, prevPoints, points, status, err, winSize, 3, termcrit, 0, 0.001);
 }
@@ -229,8 +215,8 @@ int main(int argc, char **argv)
             std::vector<float> err;
             
             // Perform optical flow
-            //opticalFlowIA(prevGray, gray, points[0], points[1], status, err);
-            opticalFlowCV(prevGray, gray, points[0], points[1], status, err);
+            opticalFlowIA(prevGray, gray, points[0], points[1], status, err);
+            //opticalFlowCV(prevGray, gray, points[0], points[1], status, err);
             drawOpticalFlow(image, points[0], points[1], status);
             
             // Draw optical flow results

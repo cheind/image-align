@@ -89,9 +89,6 @@ namespace imagealign {
             cv::Mat tpl = this->templateImage();
             cv::Mat target = this->targetImage();
             
-            const ScalarType sUp = this->scaleUpFactor(this->level());
-            const ScalarType sDown = ScalarType(1) / sUp;
-            
             Sampler<SAMPLE_BILINEAR> s;
             
             HessianType hessian = W::Traits::zeroHessian(w.numParameters());
@@ -105,15 +102,13 @@ namespace imagealign {
                 const float *tplRow = tpl.ptr<float>(y);
                 
                 for (int x = 1; x < tpl.cols - 1; ++x) {
+                    const float templateIntensity = tplRow[x];
+
                     PointType ptpl;
                     ptpl << ScalarType(x), ScalarType(y);
                     
-                    const float templateIntensity = tplRow[x];
-                    
-                    PointType ptplOrig = ptpl * sUp;
-                    
                     // 1. Warp target pixel back to template using w
-                    PointType ptgt = w(ptplOrig) * sDown;
+                    PointType ptgt = w(ptpl);
                     
                     if (!this->isInImage(ptgt, target.size(), 1))
                         continue;
@@ -129,7 +124,7 @@ namespace imagealign {
                     const GradientType grad = gradient<float, SAMPLE_BILINEAR, typename W::Traits>(target, ptgt);
                     
                     // 4. Compute the jacobian for the template pixel position
-                    JacobianType jacobian = w.jacobian(ptplOrig);
+                    JacobianType jacobian = w.jacobian(ptpl);
                     
                     // 5. Compute the steepest descent image (SDI) for current pixel location
                     const PixelSDIType sd = grad * jacobian;

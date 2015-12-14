@@ -95,7 +95,6 @@ namespace imagealign {
             _invHessians.resize(this->numLevels());
             
             for (int i = 0; i < this->numLevels(); ++i) {
-                ScalarType scale = this->scaleUpFactor(i);
                 
                 cv::Mat tpl = this->templateImagePyramid()[i];
                 cv::Size s = tpl.size();
@@ -116,7 +115,7 @@ namespace imagealign {
                         // 2. Evaluate the Jacobian of image location.
                         // Note: Jacobians are computed with pixel positions corresponding
                         // to the finest pyramid level.
-                        JacobianType jacobian = w0.jacobian(p * scale);
+                        JacobianType jacobian = w0.jacobian(p);
                         
                         // 3. Compute steepest descent images
                         PixelSDIType sdi = grad * jacobian;
@@ -131,6 +130,8 @@ namespace imagealign {
 
                 // 6. Store inverse Hessian
                 _invHessians[i] = hessian.inv();
+
+                w0 = w0.scaled(-1);
                 
             }
         }
@@ -148,9 +149,6 @@ namespace imagealign {
             cv::Mat tpl = this->templateImage();
             cv::Mat target = this->targetImage();
             
-            const ScalarType sUp = this->scaleUpFactor(this->level());
-            const ScalarType sDown = ScalarType(1) / sUp;
-            
             const VecOfSDI &sdi = _sdiPyramid[this->level()];
             
             Sampler<SAMPLE_BILINEAR> s;
@@ -165,12 +163,13 @@ namespace imagealign {
                 const float *tplRow = tpl.ptr<float>(y);
                 
                 for (int x = 1; x < tpl.cols - 1; ++x, ++idx) {
+                    const float templateIntensity = tplRow[x];
+
                     PointType ptpl;
                     ptpl << ScalarType(x), ScalarType(y);
-                    const float templateIntensity = tplRow[x];
                     
                     // 1. Warp target pixel back to template using w
-                    PointType ptgt = w(ptpl * sUp) * sDown;
+                    PointType ptgt = w(ptpl);
                     
                     if (!this->isInImage(ptgt, target.size(), 1))
                         continue;

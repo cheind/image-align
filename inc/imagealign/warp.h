@@ -242,6 +242,9 @@ namespace imagealign {
         
         /** Be able to set to identity transform. */
         void setIdentity();
+
+        /** Scale the parameters of the warp. */
+        Warp<WarpMode, Scalar> scaled(int numLevels) const;
         
         /** Be able to warp single pair of image coordinates. */
         typename Traits::PointType operator()(const typename Traits::PointType &p) const;
@@ -375,6 +378,19 @@ namespace imagealign {
             _m(0, 2) = p(0, 0);
             _m(1, 2) = p(1, 0);
         }
+
+        /** Scale the parameters of the warp. */
+        Warp<WARP_TRANSLATION, Scalar> scaled(int numLevels) const
+        {
+            ParamType p = this->parameters();
+            Scalar s = std::pow(Scalar(2), numLevels);
+            p *= s;
+
+            Warp<WARP_TRANSLATION, Scalar> w;
+            w.setParameters(p);
+
+            return w;
+        }
         
         /**
             Compute the jacobian of the warp.
@@ -461,6 +477,20 @@ namespace imagealign {
             _m(0,1) = -s;
             _m(1,0) = s;
             _m(1,1) = c;
+        }
+
+        /** Scale the parameters of the warp. */
+        Warp<WARP_EUCLIDEAN, Scalar> scaled(int numLevels) const
+        {
+            ParamType p = this->parameters();
+            Scalar s = std::pow(Scalar(2), numLevels);
+            p(0, 0) *= s;
+            p(1, 0) *= s;
+
+            Warp<WARP_EUCLIDEAN, Scalar> w;
+            w.setParameters(p);
+
+            return w;
         }
         
         /** 
@@ -603,6 +633,20 @@ namespace imagealign {
             
             
             return p;
+        }
+
+        /** Scale the parameters of the warp. */
+        Warp<WARP_SIMILARITY, Scalar> scaled(int numLevels) const
+        {
+            ParamType p = this->parameters();
+            Scalar s = std::pow(Scalar(2), numLevels);
+            p(0, 0) *= s;
+            p(1, 0) *= s;
+
+            Warp<WARP_SIMILARITY, Scalar> w;
+            w.setParameters(p);
+
+            return w;
         }
         
         /**
