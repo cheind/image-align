@@ -243,7 +243,16 @@ namespace imagealign {
         /** Be able to set to identity transform. */
         void setIdentity();
 
-        /** Scale the parameters of the warp. */
+        /** 
+            Scale the parameters of the warp. 
+
+            Used during multi-level alignment. A positive numLevels parameters 
+            indicates the number of octaves to upsample, a negative numLevels the 
+            number of octaves to downsample the current warp.
+
+            Please note that scaling should not affect point coordinates, as 
+            images will also be resized to the match the current level.        
+        */
         Warp<WarpMode, Scalar> scaled(int numLevels) const;
         
         /** Be able to warp single pair of image coordinates. */
