@@ -147,17 +147,19 @@ namespace imagealign {
             This method takes the current state of the warp parameters and refines
             them by minimizing the energy function of the derived class.
          
-            Iterations are performed on all levels of the pyramid. The length of
-            maxIterationsPerLevel argument is assumed to be of the same length as the total
-            number of pyramid levels.
-         
-            The algorithm starts at the coarsest pyramid and iterates until either
-            maxIterations for the current level is reached or an increase in error
-            is observed. Once a stopping criterium is met, the algorithm breaks to
-            the next finer pyramid level.
+            Iterations are performed on all levels of the pyramid. The algorithm starts at the 
+            coarsest pyramid and iterates a stopping criterium of the current level is matched. 
+            Once a stopping criterium is met, the algorithm breaks to the next finer pyramid level.
+
+            Currently the iteration is stopped when
+                - the number of iterations exceeds the number of iterations per level.
+                - the length of delta parameter vector estimated is less than eps
+                - an increase of error is observed (with exception between two pyramid layers)
          
             \param w Current state of warp estimation. Will be modified to hold result.
-            \param maxIterationsPerLevel Maximum number of iterations per pyramid level (from coarse to fine).
+            \param maxIterations Maximum number of iterations in all levels.
+            \param eps Minimum length of incremental parameter vector to continue on current level.
+            \param steps Optional container to receiver intermediate steps for debugging purposes.
          */
         SelfType &align(W &w, int maxIterations, ScalarType eps, std::vector<W> *steps = 0)
         {
