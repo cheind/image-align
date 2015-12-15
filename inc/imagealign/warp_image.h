@@ -63,45 +63,6 @@ namespace imagealign {
         }
     }
     
-    /**
-        Warp an image using bilinear interpolation.
-     
-        This method warps a given source image onto a given destination image. It assumes the direction
-        of the warp is such that for given pixel in the destination image, the warp reports the corresponding
-        pixel in the source image.
-     
-        This method will call create on the destination image.
-     
-        \param src_ Source image
-        \param dst_ Destination image
-        \param dstSize Size of destination image
-        \param s Sampler to use.
-        \param scaleUp Optional scale up factor. Used with different levels of hierarchy
-        \param scaleDown Optional scale down factor. Used with different levels of hierarchy
-        \param w Warp function
-     */
-    template<class ChannelType, int SampleMethod, int WarpType, class Scalar>
-    void warpImage(cv::InputArray src_, cv::OutputArray dst_, cv::Size dstSize, const Warp<WarpType, Scalar> &w, Scalar scaleUp, Scalar scaleDown, const Sampler<SampleMethod> &s = Sampler<SampleMethod>())
-    {
-        CV_Assert(src_.channels() == 1);
-        
-        typedef typename Warp<WarpType, Scalar>::Traits::PointType PointType;
-        
-        dst_.create(dstSize, src_.type());
-        
-        cv::Mat src = src_.getMat();
-        cv::Mat dst = dst_.getMat();
-        
-        for (int y = 0; y < dstSize.height; ++y) {
-            ChannelType *r = dst.ptr<ChannelType>(y);
-            
-            for (int x = 0; x < dstSize.width; ++x) {
-                PointType wp = w(PointType(Scalar(x), Scalar(y)) * scaleUp) * scaleDown;
-                r[x] = s.template sample<ChannelType>(src, wp);
-            }
-        }
-    }
-    
     
     
     
