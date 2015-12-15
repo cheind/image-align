@@ -164,9 +164,8 @@ int main(int argc, char **argv)
         std::vector<WarpType> incrementals;
         incrementals.push_back(w);
         
-        const int levels = 3;
         AlignType at;
-        at.prepare(tpl, target, w, levels);
+        at.prepare(tpl, target, w, 5);
         
         int64 e1 = cv::getTickCount();
         at.align(w, 30, 0.003, &incrementals);
