@@ -211,75 +211,76 @@ TEST_CASE("algorithm-similarity")
 
 namespace ia = imagealign;
 
-const int WARP_TRANSLATION_DYAMIC = 255;
+namespace imagealign {
+	const int WARP_TRANSLATION_DYAMIC = 255;
 
-template<class Scalar>
-struct ia::WarpTraits<WARP_TRANSLATION_DYAMIC, Scalar> : ia::WarpTraitsForRunTimeKnownParameterCount<WARP_TRANSLATION_DYAMIC, Scalar> {};
+	template<class Scalar>
+	struct WarpTraits<WARP_TRANSLATION_DYAMIC, Scalar> : WarpTraitsForRunTimeKnownParameterCount<WARP_TRANSLATION_DYAMIC, Scalar> {};
 
-template<class Scalar>
-class ia::Warp<WARP_TRANSLATION_DYAMIC, Scalar> {
-public:
-    typedef WarpTraits<WARP_TRANSLATION_DYAMIC, Scalar> Traits;
-    
-    Warp() {
-        _m.create(2, 1);
-        setIdentity();
-    }
-    
-    Warp(const Warp<WARP_TRANSLATION_DYAMIC, Scalar> &other) {
-        _m = other._m.clone();
-    }
-    
-    int numParameters() const {
-        return 2;
-    }
-    
-    void setIdentity() {
-        _m.setTo(0);
-    }
+	template<class Scalar>
+	class Warp<WARP_TRANSLATION_DYAMIC, Scalar> {
+	public:
+		typedef WarpTraits<WARP_TRANSLATION_DYAMIC, Scalar> Traits;
 
-    Warp<WARP_TRANSLATION_DYAMIC, Scalar> scaled(int numLevels) const
-    {
-        Scalar s = std::pow(Scalar(2), numLevels);
-        Warp<WARP_TRANSLATION_DYAMIC, Scalar> ws(*this);
-        ws._m *= s;
-        return ws;
-    }
-    
-    typename Traits::PointType operator()(const typename Traits::PointType &p) const {
-        return typename Traits::PointType(p(0) + _m(0,0), p(1) + _m(1, 0));
-    }
-    
-    typename Traits::JacobianType jacobian(const typename Traits::PointType &p) const {
-        return Traits::JacobianType::eye(2, 2, CV_MAKETYPE(cv::DataType<Scalar>::depth, 1));
-    }
-    
-    void updateInverseCompositional(const typename Traits::ParamType &delta) {
-        _m -= delta;
-    }
-    
-    void updateForwardAdditive(const typename Traits::ParamType &delta) {
-        _m += delta;
-    }
-    
-    void updateForwardCompositional(const typename Traits::ParamType &delta) {
-        _m += delta;
-    }
-    
-    // Helper functions
-    
-    void setParameters(const typename Traits::ParamType &p) {
-        p.copyTo(_m);
-    }
-    
-    typename Traits::ParamType parameters() const {
-        return _m.clone();
-    }
-    
-private:
-    cv::Mat_<Scalar> _m;
-};
+		Warp() {
+			_m.create(2, 1);
+			setIdentity();
+		}
 
+		Warp(const Warp<WARP_TRANSLATION_DYAMIC, Scalar> &other) {
+			_m = other._m.clone();
+		}
+
+		int numParameters() const {
+			return 2;
+		}
+
+		void setIdentity() {
+			_m.setTo(0);
+		}
+
+		Warp<WARP_TRANSLATION_DYAMIC, Scalar> scaled(int numLevels) const
+		{
+			Scalar s = std::pow(Scalar(2), numLevels);
+			Warp<WARP_TRANSLATION_DYAMIC, Scalar> ws(*this);
+			ws._m *= s;
+			return ws;
+		}
+
+		typename Traits::PointType operator()(const typename Traits::PointType &p) const {
+			return typename Traits::PointType(p(0) + _m(0, 0), p(1) + _m(1, 0));
+		}
+
+		typename Traits::JacobianType jacobian(const typename Traits::PointType &p) const {
+			return Traits::JacobianType::eye(2, 2, CV_MAKETYPE(cv::DataType<Scalar>::depth, 1));
+		}
+
+		void updateInverseCompositional(const typename Traits::ParamType &delta) {
+			_m -= delta;
+		}
+
+		void updateForwardAdditive(const typename Traits::ParamType &delta) {
+			_m += delta;
+		}
+
+		void updateForwardCompositional(const typename Traits::ParamType &delta) {
+			_m += delta;
+		}
+
+		// Helper functions
+
+		void setParameters(const typename Traits::ParamType &p) {
+			p.copyTo(_m);
+		}
+
+		typename Traits::ParamType parameters() const {
+			return _m.clone();
+		}
+
+	private:
+		cv::Mat_<Scalar> _m;
+	};
+}
 
 TEST_CASE("algorithm-dynamic-warp")
 {
@@ -293,7 +294,7 @@ TEST_CASE("algorithm-dynamic-warp")
     
     // Floating point
     {
-        typedef ia::Warp<WARP_TRANSLATION_DYAMIC, float> W;
+        typedef ia::Warp<ia::WARP_TRANSLATION_DYAMIC, float> W;
         
         W::Traits::ParamType expected(2, 1, CV_32FC1);
         expected.at<float>(0, 0) = 20;
@@ -318,7 +319,7 @@ TEST_CASE("algorithm-dynamic-warp")
     
     // Double precision floating point
     {
-        typedef ia::Warp<WARP_TRANSLATION_DYAMIC, double> W;
+        typedef ia::Warp<ia::WARP_TRANSLATION_DYAMIC, double> W;
         
         W::Traits::ParamType expected(2, 1, CV_64FC1);
         expected.at<double>(0, 0) = 20;
