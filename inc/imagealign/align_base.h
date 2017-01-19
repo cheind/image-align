@@ -24,6 +24,8 @@
 #include <imagealign/config.h>
 #include <imagealign/image_pyramid.h>
 
+#include <limits>
+
 
 namespace imagealign {
     
